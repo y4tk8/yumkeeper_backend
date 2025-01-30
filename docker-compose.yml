@@ -1,0 +1,47 @@
+name: yumkeeper
+
+services:
+  db:
+    # 最新版PostgreSQLのイメージ(2025年1月時点)
+    image: postgres:17.2
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "pg_isready",
+          "-U",
+          "${POSTGRES_USER}",
+          "-d",
+          "${DB_NAME}",
+          "-h",
+          "localhost"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+
+  api:
+    build: .
+    env_file: .env
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+
+volumes:
+  postgres_data:
