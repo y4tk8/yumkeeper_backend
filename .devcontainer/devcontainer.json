@@ -35,7 +35,7 @@
 	// "shutdownAction": "none",
 
 	// Uncomment the next line to run commands after the container is created.
-	"postCreateCommand": "apk add --no-cache openssh",
+	"postCreateCommand": "apk add --no-cache openssh"
 
 	// Configure tool-specific properties.
 	// "customizations": {},
