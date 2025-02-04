@@ -24,7 +24,7 @@ Dir.mkdir(socket_dir) unless Dir.exist?(socket_dir)
 
 # 本番環境 or 開発環境でリバースプロキシを経由したい場合、Nginxとの通信のためソケットファイルを取得
 # それ以外はRailsサーバーを直接起動
-bind_address = ENV["RAILS_ENV"] == "prod" || ENV["USE_REVERSE_PROXY"] == "true" ?
+bind_address = ENV["RAILS_ENV"] == "production" || ENV["USE_REVERSE_PROXY"] == "true" ?
   "unix://#{app_root}/tmp/sockets/puma.sock" :
   "tcp://0.0.0.0:3000"
 bind bind_address
