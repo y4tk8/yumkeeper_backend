@@ -32,10 +32,18 @@ services:
   api:
     build: .
     env_file: .env
+    environment:
+      USE_REVERSE_PROXY: "true"
+      RAILS_ENV: development
+    # 本番用
+    # RAILS_ENV: production
     ports:
       - 3010:3000
     volumes:
       - .:/app
+      - ./log:/app/log
+      - public_data:/app/public
+      - tmp_data:/app/tmp
     stdin_open: true
     tty: true
     depends_on:
@@ -43,5 +51,20 @@ services:
         condition: service_healthy
         restart: true
 
+  web:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    ports:
+      - 8080:80
+    volumes:
+      - ./nginx/log:/var/log/nginx
+      - public_data:/app/public
+      - tmp_data:/app/tmp
+    depends_on:
+      - api
+
 volumes:
   postgres_data:
+  public_data:
+  tmp_data:
