@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
-      - '5432:5432'
+      - 5432:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -33,7 +33,7 @@ services:
     build: .
     env_file: .env
     environment:
-      USE_REVERSE_PROXY: "true"
+      USE_REVERSE_PROXY: true
       RAILS_ENV: development
     # 本番用
     # RAILS_ENV: production
