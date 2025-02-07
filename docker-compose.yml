@@ -1,6 +1,7 @@
 name: yumkeeper
 
 services:
+  # Postgresコンテナ
   db:
     # 最新版PostgreSQLのイメージ(2025年1月時点)
     image: postgres:17.2
@@ -11,6 +12,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - 5432:5432
+    networks:
+      - shared_network
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,6 +32,7 @@ services:
       timeout: 10s
       retries: 3
 
+  # Railsコンテナ
   api:
     build: .
     env_file: .env
@@ -39,6 +43,8 @@ services:
     # RAILS_ENV: production
     ports:
       - 3010:3000
+    networks:
+      - shared_network
     volumes:
       - .:/app
       - ./log:/app/log
@@ -51,18 +57,26 @@ services:
         condition: service_healthy
         restart: true
 
+  # Nginxコンテナ
   web:
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
     ports:
       - 8080:80
+    networks:
+      - shared_network
     volumes:
       - ./nginx/log:/var/log/nginx
       - public_data:/app/public
       - tmp_data:/app/tmp
     depends_on:
       - api
+
+# フロントエンドとの共有ネットワーク
+networks:
+  shared_network:
+    external: true
 
 volumes:
   postgres_data:
