@@ -1,18 +1,17 @@
 class DeviseTokenAuthCreateUsers < ActiveRecord::Migration[7.2]
   def change
-    
     create_table(:users) do |t|
       ## Required
-      t.string :provider, :null => false, :default => "email"
-      t.string :uid,      :null => false
+      t.string :provider, null: false, default: "email"
+      t.string :uid,      null: false
 
       ## Database authenticatable
-      t.string :encrypted_password, :null => false
+      t.string :encrypted_password, null: false
 
       ## Recoverable
       t.string   :reset_password_token
       t.datetime :reset_password_sent_at
-      t.boolean  :allow_password_change, :default => true
+      t.boolean  :allow_password_change, default: true
 
       ## Rememberable
       # t.datetime :remember_created_at
@@ -29,14 +28,14 @@ class DeviseTokenAuthCreateUsers < ActiveRecord::Migration[7.2]
       # t.datetime :locked_at
 
       ## User Info
-      t.string :email, :null => false
+      t.string :email, null: false
       t.string :username
       t.string :profile_image_url
 
       ## Others
-      t.boolean  :is_activated, :default => false
-      t.boolean  :is_deleted,   :default => false
-      t.string   :role,         :default => "一般"
+      t.boolean  :is_activated, default: false
+      t.boolean  :is_deleted,   default: false
+      t.string   :role,         default: "一般"
       t.datetime :last_login_at
 
       ## Tokens
