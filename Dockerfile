@@ -8,6 +8,7 @@ RUN apk update && apk add --no-cache \
     build-base \
     yaml-dev \
     postgresql-dev \
+    postgresql-client \
     git \
     bash \
     tzdata
