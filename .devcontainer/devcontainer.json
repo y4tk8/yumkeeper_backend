@@ -16,7 +16,7 @@
 
 	// The optional 'workspaceFolder' property is the path VS Code should open by default when
 	// connected. This is typically a file mount in .devcontainer/docker-compose.yml
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"workspaceFolder": "/workspaces/yumkeeper_backend",
 
 	"mounts": [
 		"source=${localEnv:HOME}/.ssh,target=/root/.ssh,type=bind"
