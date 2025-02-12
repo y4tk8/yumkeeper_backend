@@ -27,6 +27,7 @@ gem "bootsnap", require: false
 # gem "image_processing", "~> 1.2"
 
 gem "devise"
+gem 'devise-i18n'
 gem "devise_token_auth"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
@@ -39,6 +40,8 @@ group :development, :test do
   # Rails testing library
   gem "rspec-rails", "~> 7.1.0"
   gem "factory_bot_rails"
+  gem "faker"
+  gem "capybara"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
