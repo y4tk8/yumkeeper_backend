@@ -66,11 +66,11 @@ DeviseTokenAuth.setup do |config|
 
   # メールアドレス認証後のリダイレクトURL
   # NOTE: URLは後で適切にする
-  config.default_confirm_success_url = "http://localhost:3000"
+  config.default_confirm_success_url = "http://localhost:3010"
 
   # パスワードリセットリンク押下後のリダイレクトURL
   # NOTE: URLは後で適切にする
-  config.default_password_reset_url = "http://localhost:3000"
+  config.default_password_reset_url = "http://localhost:3010"
 
   # 標準の devise gem で別ルートのサポートを有効化
   config.enable_standard_devise_support = true
