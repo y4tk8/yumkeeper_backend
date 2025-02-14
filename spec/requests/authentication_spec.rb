@@ -43,4 +43,57 @@ RSpec.describe "User Authentication", type: :request do
       end
     end
   end
+
+  # ユーザーのサインアウト
+  describe "DELETE /api/v1/auth/sign_out" do
+    let(:headers) do
+      # サインインで認証情報をレスポンスとして取得
+      post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }
+      {
+        "access-token" => response.headers["access-token"],
+        "client" => response.headers["client"],
+        "uid" => response.headers["uid"]
+      }
+    end
+
+    context "認証情報が正しい場合" do
+      it "サインアウトが成功し、ステータス200が返る" do
+        delete "/api/v1/auth/sign_out", headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["success"]).to be true
+      end
+
+      it "サインアウト後、ユーザーのtokensカラムが空になる" do
+        delete "/api/v1/auth/sign_out", headers: headers
+
+        user.reload
+        expect(user.tokens).to be_empty
+      end
+    end
+
+    context "認証情報がない、または間違っている場合" do
+      # 認証情報がない
+      it "サインアウトに失敗し、ステータス404が返る" do
+        delete "/api/v1/auth/sign_out"
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["errors"]).to include("ユーザーが見つからないか、ログインしていません。")
+      end
+
+      # 認証情報が間違っている
+      it "サインアウトに失敗し、ステータス404が返る" do
+        invalid_headers = {
+          "access-token" => "invalid_token",
+          "client" => "invalid_client",
+          "uid" => "invalid_uid@example.com"
+        }
+
+        delete "/api/v1/auth/sign_out", headers: invalid_headers
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["errors"]).to include("ユーザーが見つからないか、ログインしていません。")
+      end
+    end
+  end
 end
