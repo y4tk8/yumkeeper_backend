@@ -9,5 +9,10 @@ FactoryBot.define do
     trait :confirmed do
       confirmed_at { Time.current }
     end
+
+    # 退会済み
+    trait :deleted do
+      is_deleted { true }
+    end
   end
 end
