@@ -19,6 +19,16 @@ class User < ActiveRecord::Base
   validates :password, format: { with:    VALID_PASSWORD_REGEX,
                                  message: "パスワードは英字と数字を含んだ8文字以上にしてください" }, if: :password_required?
 
+  # Devise Token Auth のサインイン時に退会済みユーザーは認証エラーにする
+  def active_for_authentication?
+    super && !is_deleted
+  end
+
+  # 認証エラー時のDeviseデフォルトメッセージをオーバーライド
+  def inactive_message
+    is_deleted ? "退会済みのユーザーです。" : super
+  end
+
   private
 
   def downcase_email
