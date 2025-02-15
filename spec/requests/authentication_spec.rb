@@ -1,6 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "User Authentication", type: :request do
+  # メール認証済みのユーザー
   let(:user) { create(:user, :confirmed) }
 
   # ユーザーのサインイン
@@ -37,6 +38,17 @@ RSpec.describe "User Authentication", type: :request do
 
       it "サインインが失敗し、ステータス401が返る" do
         post "/api/v1/auth/sign_in", params: { email: unconfirmed_user.email, password: unconfirmed_user.password }
+
+        expect(response).to have_http_status(:unauthorized)
+        expect(response.parsed_body["errors"]).to include("ログイン用の認証情報が正しくありません。再度お試しください。")
+      end
+    end
+
+    context "退会済みユーザーの場合" do
+      let(:deleted_user) { create(:user, :deleted) } # confirmed_at はあえてnilにせずテスト
+
+      it "サインインが失敗し、ステータス401が返る" do
+        post "/api/v1/auth/sign_in", params: { email: deleted_user.email, password: deleted_user.password }
 
         expect(response).to have_http_status(:unauthorized)
         expect(response.parsed_body["errors"]).to include("ログイン用の認証情報が正しくありません。再度お試しください。")
@@ -93,6 +105,61 @@ RSpec.describe "User Authentication", type: :request do
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["errors"]).to include("ユーザーが見つからないか、ログインしていません。")
+      end
+    end
+  end
+
+  # ユーザーの退会
+  describe "DELETE /api/v1/auth" do
+    let(:headers) do
+      # サインインで認証情報をレスポンスとして取得
+      post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }
+      {
+        "access-token" => response.headers["access-token"],
+        "client" => response.headers["client"],
+        "uid" => response.headers["uid"]
+      }
+    end
+
+    context "認証情報が正しい場合" do
+      it "退会処理が成功し、ステータス200が返る" do
+        delete "/api/v1/auth", headers: headers
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["message"]).to include("退会処理が正常に完了しました。")
+      end
+
+      it "ユーザーのアカウントが論理削除される" do
+        delete "/api/v1/auth", headers: headers
+
+        user.reload
+        expect(user.is_deleted).to be true
+        expect(user.confirmed_at).to be_nil
+        expect(user.tokens).to be_empty
+      end
+    end
+
+    context "認証情報がない、または間違っている場合" do
+      # 認証情報がない
+      it "退会処理に失敗し、ステータス404が返る" do
+        delete "/api/v1/auth"
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["message"]).to include("ユーザーが見つかりません。")
+      end
+
+      # 認証情報が間違っている
+      it "退会処理に失敗し、ステータス404が返る" do
+        invalid_headers = {
+          "access-token" => "invalid_token",
+          "client" => "invalid_client",
+          "uid" => "invalid_uid@example.com"
+        }
+
+        delete "/api/v1/auth", headers: invalid_headers
+
+        expect(response).to have_http_status(:not_found)
+        expect(response.parsed_body["message"]).to include("ユーザーが見つかりません。")
       end
     end
   end
