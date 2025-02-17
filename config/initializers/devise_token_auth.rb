@@ -57,7 +57,7 @@ DeviseTokenAuth.setup do |config|
   # By default, only Bearer Token authentication is implemented out of the box.
   # If, however, you wish to integrate with legacy Devise authentication, you can
   # do so by enabling this flag. NOTE: This feature is highly experimental!
-  # config.enable_standard_devise_support = false
+  config.enable_standard_devise_support = true
 
   # By default DeviseTokenAuth will not send confirmation email, even when including
   # devise confirmable module. If you want to use devise confirmable module and
@@ -68,10 +68,10 @@ DeviseTokenAuth.setup do |config|
   # NOTE: URLは後で適切にする
   config.default_confirm_success_url = "http://localhost:3010"
 
+  # ユーザー認証情報の代わりにパスワードリセットトークンをリダイレクト先URLに含める
+  config.require_client_password_reset_token = true
+
   # パスワードリセットリンク押下後のリダイレクトURL
   # NOTE: URLは後で適切にする
   config.default_password_reset_url = "http://localhost:3010"
-
-  # 標準の devise gem で別ルートのサポートを有効化
-  config.enable_standard_devise_support = true
 end
