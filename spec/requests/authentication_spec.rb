@@ -58,8 +58,8 @@ RSpec.describe "User Authentication", type: :request do
 
   # ユーザーのサインアウト
   describe "DELETE /api/v1/auth/sign_out" do
+    # サインインで認証情報をレスポンスとして取得
     let(:headers) do
-      # サインインで認証情報をレスポンスとして取得
       post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }
       {
         "access-token" => response.headers["access-token"],
