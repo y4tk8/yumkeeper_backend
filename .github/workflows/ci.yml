@@ -94,6 +94,7 @@ jobs:
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          POSTGRES_HOST: localhost
         run: |
           bin/rails db:prepare
           bundle exec rspec
