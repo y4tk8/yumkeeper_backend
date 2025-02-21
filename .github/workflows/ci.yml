@@ -1,12 +1,12 @@
 name: CI
 
-# NOTE: PRではトリガーせず開発スピードを上げる（個人開発のため、他開発者がmainを変更することはない）
 on:
   workflow_dispatch:
     inputs:
       ref:
         description: "Choose a branch, tag, or SHA"
         required: true
+  pull_request:
   push:
     branches:
       - main
