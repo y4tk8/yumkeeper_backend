@@ -1,12 +1,12 @@
 name: CI
 
-# NOTE: PRではトリガーせず開発スピードを上げる（個人開発のため、他開発者がmainを変更することはない）
 on:
   workflow_dispatch:
     inputs:
       ref:
         description: "Choose a branch, tag, or SHA"
         required: true
+  pull_request:
   push:
     branches:
       - main
@@ -61,10 +61,10 @@ jobs:
           POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
-        options: |
-          --health-cmd="pg_isready" \
-          --health-interval=10s \
-          --health-timeout=5s \
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
           --health-retries=3
 
     steps:
