@@ -5,7 +5,10 @@ Rails.application.routes.draw do
         registrations: "api/v1/auth/registrations",
         passwords:     "api/v1/auth/passwords"
       }
-      resources :recipes, only: [:index, :show, :create, :update, :destroy]
+
+      resources :users do
+        resources :recipes, only: [:index, :show, :create, :update, :destroy]
+      end
     end
   end
 
