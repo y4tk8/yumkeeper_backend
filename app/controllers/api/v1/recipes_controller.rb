@@ -11,6 +11,15 @@ module Api
       end
 
       def show
+        render json: {
+          recipe: {
+            id: @recipe.id,
+            name: @recipe.name,
+            notes: @recipe.notes,
+            created_at: @recipe.created_at,
+            updated_at: @recipe.updated_at
+          }
+        }, status: :ok
       end
 
       def create
