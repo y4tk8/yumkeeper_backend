@@ -1,0 +1,9 @@
+ja:
+  activerecord:
+    errors:
+      models:
+        recipe:
+          attributes:
+            name:
+              blank: "レシピ名を入力してください"
+              too_long: "レシピ名は%{count}文字以内で入力してください"
