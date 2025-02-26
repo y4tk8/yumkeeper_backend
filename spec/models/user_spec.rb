@@ -1,8 +1,7 @@
 require "rails_helper"
 
 RSpec.describe User, type: :model do
-  # バリデーションチェック
-  describe "ユーザーのサインアップ" do
+  describe "Userのバリデーションチェック" do
     let(:user) { build(:user) }
 
     context "有効な場合" do
