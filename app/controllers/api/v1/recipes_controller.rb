@@ -1,6 +1,9 @@
 module Api
   module V1
     class RecipesController < ApplicationController
+      # モデル名をキーにJSONデータを自動ラップする機能をオフに
+      wrap_parameters false
+
       before_action :authenticate_api_v1_user! # Devise Token Authでユーザーのサインインを必須に
       before_action :set_user
       before_action :set_recipe, only: [:show, :update, :destroy]
@@ -23,6 +26,13 @@ module Api
       end
 
       def create
+        recipe = @user.recipes.build(recipe_params)
+
+        if recipe.save
+          render json: { message: "レシピが作成されました", recipe: recipe }, status: :created
+        else
+          render json: { error: "レシピの作成に失敗しました", details: recipe.errors.messages[:name] }, status: :unprocessable_entity
+        end
       end
 
       def update
@@ -52,6 +62,11 @@ module Api
         unless @recipe
           render json: { error: "レシピが見つかりません。" }, status: :forbidden
         end
+      end
+
+      # ストロングパラメータ
+      def recipe_params
+        params.require(:recipe).permit(:name, :notes)
       end
     end
   end
