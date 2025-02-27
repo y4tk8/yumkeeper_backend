@@ -36,6 +36,11 @@ module Api
       end
 
       def update
+        if @recipe.update(recipe_params)
+          render json: { message: "レシピが更新されました", recipe: @recipe }, status: :ok
+        else
+          render json: { error: "レシピの更新に失敗しました", details: @recipe.errors.messages[:name] }, status: :unprocessable_entity
+        end
       end
 
       def destroy
