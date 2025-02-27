@@ -3,6 +3,7 @@ require "rails_helper"
 RSpec.describe "Api::V1::Recipes", type: :request do
   let(:user) { create(:user, :confirmed) } # メール認証済みのユーザー
   let!(:recipes) { create_list(:recipe, 5, user: user) } # レシピを5つ作成
+  let(:recipe) { recipes.first }
   let(:headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
   let(:other_user) { create(:user, :confirmed) } # 別ユーザー
@@ -51,7 +52,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
   # ユーザーごとのレシピ詳細を取得（show）
   describe "GET /api/v1/users/:user_id/recipes/:id" do
     before do
-      get "/api/v1/users/#{user.id}/recipes/#{recipes.first.id}", headers: headers, as: :json
+      get "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
     end
 
     context "有効なユーザーが自分のレシピ詳細を取得する場合" do
@@ -60,11 +61,11 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
 
       it "正しいレシピデータが返る" do
-        expect(response.parsed_body["recipe"]["id"]).to eq(recipes.first.id)
-        expect(response.parsed_body["recipe"]["name"]).to eq(recipes.first.name)
-        expect(response.parsed_body["recipe"]["notes"]).to eq(recipes.first.notes)
-        expect(Time.parse(response.parsed_body["recipe"]["created_at"])).to be_within(1.second).of(recipes.first.created_at)
-        expect(Time.parse(response.parsed_body["recipe"]["created_at"])).to be_within(1.second).of(recipes.first.updated_at)
+        expect(response.parsed_body["recipe"]["id"]).to eq(recipe.id)
+        expect(response.parsed_body["recipe"]["name"]).to eq(recipe.name)
+        expect(response.parsed_body["recipe"]["notes"]).to eq(recipe.notes)
+        expect(Time.parse(response.parsed_body["recipe"]["created_at"])).to be_within(1.second).of(recipe.created_at)
+        expect(Time.parse(response.parsed_body["recipe"]["created_at"])).to be_within(1.second).of(recipe.updated_at)
       end
     end
 
@@ -155,6 +156,62 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
         expect(response).to have_http_status(:created)
         expect(response.parsed_body["recipe"]).not_to have_key("image")
+      end
+    end
+  end
+
+  # レシピを更新（update）
+  describe "PUT /api/v1/users/:user_id/recipes/:id" do
+    let(:valid_attributes) do
+      {
+        recipe: {
+          "name": "新しいレシピ名",
+          "notes": "新しいメモ"
+        }
+      }
+    end
+
+    let(:invalid_attributes) do
+      {
+        recipe: {
+          "name": "",
+          "notes": "新しいメモ"
+        }
+      }
+    end
+
+    context "有効なユーザーが自分のレシピを更新する場合" do
+      it "リクエストが成功し、ステータス200が返る" do
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: valid_attributes, headers: headers, as: :json
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "DBの該当データが更新される" do
+        old_updated_at = recipe.updated_at
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: valid_attributes, headers: headers, as: :json
+
+        recipe.reload
+        expect(recipe.name).to eq("新しいレシピ名")
+        expect(recipe.notes).to eq("新しいメモ")
+        expect(recipe.updated_at).to be > old_updated_at
+      end
+
+      it "レシピ名（name）が空の場合、ステータス422が返る" do
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: invalid_attributes, headers: headers, as: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["error"]).to eq("レシピの更新に失敗しました")
+        expect(response.parsed_body["details"]).to include("レシピ名を入力してください")
+      end
+    end
+
+    context "自分が保有していないレシピを更新しようとした場合" do
+      it "リクエストが失敗し、ステータス403が返る" do
+        put "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", params: valid_attributes, headers: headers, as: :json
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
       end
     end
   end
