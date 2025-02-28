@@ -215,4 +215,43 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
     end
   end
+
+  # レシピを削除（destroy）
+  describe "DELETE /api/v1/users/:user_id/recipes/:id" do
+    context "有効なユーザーが自分のレシピを削除する場合" do
+      it "ステータス200が返り、レシピがDBから物理削除される" do
+        expect {
+          delete "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+        }.to change { Recipe.count }.by(-1)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body["message"]).to eq("レシピが削除されました")
+      end
+
+      it "削除後にそのレシピにアクセスするとステータス403が返る" do
+        delete "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+        get "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+
+        expect(response).to have_http_status(:forbidden)
+        expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
+      end
+
+      it "削除後にユーザーの recipe_count が減る" do
+        expect {
+          delete "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+          user.reload
+        }.to change { user.recipe_count }.by(-1)
+      end
+    end
+
+    context "自分が保有していないレシピを削除しようとした場合" do
+      it "リクエストが失敗し、ステータス403が返る" do
+        expect {
+          delete "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", headers: headers, as: :json
+        }.not_to change { Recipe.count }
+
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+  end
 end
