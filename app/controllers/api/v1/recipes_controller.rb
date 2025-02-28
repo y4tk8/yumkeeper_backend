@@ -44,6 +44,11 @@ module Api
       end
 
       def destroy
+        if @recipe.destroy
+          render json: { message: "レシピが削除されました" }, status: :ok
+        else
+          render json: { error: "レシピの削除に失敗しました" }, status: :unprocessable_entity
+        end
       end
 
       private
