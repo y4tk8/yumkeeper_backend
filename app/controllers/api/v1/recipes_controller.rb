@@ -20,7 +20,16 @@ module Api
             name: @recipe.name,
             notes: @recipe.notes,
             created_at: @recipe.created_at,
-            updated_at: @recipe.updated_at
+            updated_at: @recipe.updated_at,
+            ingredients: @recipe.ingredients.map do |ingredient|
+              {
+                id: ingredient.id,
+                name: ingredient.name,
+                quantity: ingredient.quantity,
+                unit: ingredient.unit,
+                category: ingredient.category
+              }
+            end
           }
         }, status: :ok
       end
