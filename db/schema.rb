@@ -10,9 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_02_21_162719) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_01_060354) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "ingredients", force: :cascade do |t|
+    t.bigint "recipe_id", null: false
+    t.string "name", limit: 50, null: false
+    t.decimal "quantity", precision: 6, scale: 3
+    t.string "unit", limit: 20
+    t.string "category", limit: 20, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["recipe_id"], name: "index_ingredients_on_recipe_id"
+  end
 
   create_table "recipes", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -50,8 +61,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_02_21_162719) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
     t.check_constraint "char_length(username::text) <= 20", name: "check_username_length"
     t.check_constraint "confirmed_at IS NULL OR confirmed_at >= confirmation_sent_at", name: "check_confirmation_times"
-    t.check_constraint "role::text = ANY (ARRAY['一般'::character varying, '管理者'::character varying, 'ゲスト'::character varying]::text[])", name: "check_role"
+    t.check_constraint "role::text = ANY (ARRAY['一般'::character varying::text, '管理者'::character varying::text, 'ゲスト'::character varying::text])", name: "check_role"
   end
 
+  add_foreign_key "ingredients", "recipes"
   add_foreign_key "recipes", "users"
 end
