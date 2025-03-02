@@ -38,7 +38,7 @@ module Api
         recipe = @user.recipes.build(recipe_params)
 
         if recipe.save
-          render json: { message: "レシピが作成されました", recipe: recipe }, status: :created
+          render json: { message: "レシピが作成されました", recipe: recipe, ingredient: recipe.ingredients }, status: :created
         else
           render json: { error: "レシピの作成に失敗しました", details: recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
@@ -46,7 +46,7 @@ module Api
 
       def update
         if @recipe.update(recipe_params)
-          render json: { message: "レシピが更新されました", recipe: @recipe }, status: :ok
+          render json: { message: "レシピが更新されました", recipe: @recipe, ingredient: @recipe.ingredients }, status: :ok
         else
           render json: { error: "レシピの更新に失敗しました", details: @recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
@@ -85,7 +85,10 @@ module Api
 
       # ストロングパラメータ
       def recipe_params
-        params.require(:recipe).permit(:name, :notes)
+        params.require(:recipe).permit(
+          :name, :notes,
+          ingredients_attributes: [:id, :name, :quantity, :unit, :category, :_destroy] # "_destroy": trueで指定IDの材料を削除
+        )
       end
     end
   end
