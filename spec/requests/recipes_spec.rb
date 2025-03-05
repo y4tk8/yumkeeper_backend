@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe "Api::V1::Recipes", type: :request do
   let(:user) { create(:user, :confirmed) } # メール認証済みのユーザー
   let!(:recipes) { create_list(:recipe, 5, user: user) } # レシピを5つ作成
-  let(:recipe) { recipes.first }
+  let(:recipe) { create(:recipe, :add_ingredients, user: user) } # 材料データ有りのレシピ
   let(:headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
   let(:other_user) { create(:user, :confirmed) } # 別ユーザー
@@ -21,7 +21,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
 
       it "作成した全てのレシピとカウントを取得する" do
-        expect(response.parsed_body["recipes"].length).to eq(5)
+        expect(response.parsed_body["recipes"].size).to eq(5)
         expect(response.parsed_body["recipe_count"]).to eq(5)
       end
 
@@ -67,6 +67,20 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(Time.parse(response.parsed_body["recipe"]["created_at"])).to be_within(1.second).of(recipe.created_at)
         expect(Time.parse(response.parsed_body["recipe"]["created_at"])).to be_within(1.second).of(recipe.updated_at)
       end
+
+      it "正しい材料データが返る" do
+        expected_ingredients = recipe.ingredients.map do |ingredient|
+          {
+            "id" => ingredient.id,
+            "name" => ingredient.name,
+            "quantity" => ingredient.quantity,
+            "unit" => ingredient.unit,
+            "category" => ingredient.category
+          }
+        end
+
+        expect(response.parsed_body["recipe"]["ingredients"]).to match_array(expected_ingredients)
+      end
     end
 
     context "自分が保有していないレシピ詳細を取得しようとした場合" do
@@ -85,7 +99,12 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       {
         recipe: {
           name: "カレーライス",
-          notes: "カレー粉はブレンドする"
+          notes: "カレー粉はブレンドする",
+          ingredients_attributes: [
+            { name: "豚肉", quantity: 300, unit: "g", category: "ingredient" },
+            { name: "ニンジン", quantity: 1.5, unit: "本", category: "ingredient" },
+            { name: "カレー粉", quantity: 1, unit: "箱", category: "seasoning" }
+          ]
         }
       }
     end
@@ -126,6 +145,25 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(response.parsed_body["recipe"]["name"]).to eq("カレーライス")
         expect(response.parsed_body["recipe"]["notes"]).to eq("カレー粉はブレンドする")
       end
+
+      it "レシピと一緒に、材料もDBに保存される" do
+        expect {
+          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: headers, as: :json
+        }.to change(Ingredient, :count).by(3)
+
+        expected_ingredients = [
+          { "name" => "豚肉", "quantity" => 300, "unit" => "g", "category" => "ingredient" },
+          { "name" => "ニンジン", "quantity" => 1.5, "unit" => "本", "category" => "ingredient" },
+          { "name" => "カレー粉", "quantity" => 1, "unit" => "箱", "category" => "seasoning" }
+        ]
+
+        actual_ingredients = response.parsed_body["recipe"]["ingredients"].map do |ingredient|
+          ingredient.slice("name", "quantity", "unit", "category")
+        end
+
+        expect(actual_ingredients.size).to eq(3)
+        expect(actual_ingredients).to match_array(expected_ingredients)
+      end
     end
 
     # ストロングパラメータ
@@ -162,34 +200,39 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
   # レシピを更新（update）
   describe "PUT /api/v1/users/:user_id/recipes/:id" do
-    let(:valid_attributes) do
+    let(:params_to_update) do
+      existing_ingredients = recipe.ingredients.to_a
       {
         recipe: {
-          "name": "新しいレシピ名",
-          "notes": "新しいメモ"
+          name: "新しいレシピ名",
+          notes: "新しいメモ",
+          ingredients_attributes: [
+            { id: existing_ingredients[0].id, name: "新しい材料", quantity: 3, unit: "本", category: "ingredient" },
+            { id: existing_ingredients[1].id, _destroy: true }
+          ]
         }
       }
     end
 
-    let(:invalid_attributes) do
+    let(:invalid_params) do
       {
         recipe: {
-          "name": "",
-          "notes": "新しいメモ"
+          name: "",
+          notes: "新しいメモ"
         }
       }
     end
 
     context "有効なユーザーが自分のレシピを更新する場合" do
       it "リクエストが成功し、ステータス200が返る" do
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: valid_attributes, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
 
         expect(response).to have_http_status(:ok)
       end
 
-      it "DBの該当データが更新される" do
+      it "DBのレシピデータが更新される" do
         old_updated_at = recipe.updated_at
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: valid_attributes, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
 
         recipe.reload
         expect(recipe.name).to eq("新しいレシピ名")
@@ -197,8 +240,29 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(recipe.updated_at).to be > old_updated_at
       end
 
-      it "レシピ名（name）が空の場合、ステータス422が返る" do
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: invalid_attributes, headers: headers, as: :json
+      it "DBの材料データが更新され、不要な材料は削除される" do
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
+
+        update_id = params_to_update[:recipe][:ingredients_attributes][0][:id]
+        delete_id = params_to_update[:recipe][:ingredients_attributes][1][:id]
+
+        recipe.ingredients.reload
+        updated_ingredient = recipe.ingredients.find_by(id: update_id)
+        deleted_ingredient = recipe.ingredients.find_by(id: delete_id)
+
+        expect(updated_ingredient).to have_attributes(
+          "name": "新しい材料",
+          "quantity": 3,
+          "unit": "本",
+          "category": "ingredient"
+        )
+        expect(deleted_ingredient).to be_nil
+      end
+    end
+
+    context "レシピ名（name）が空の場合" do
+      it "リクエストが失敗し、ステータス422が返る" do
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: invalid_params, headers: headers, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.parsed_body["error"]).to eq("レシピの更新に失敗しました")
@@ -208,7 +272,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     context "自分が保有していないレシピを更新しようとした場合" do
       it "リクエストが失敗し、ステータス403が返る" do
-        put "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", params: valid_attributes, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", params: params_to_update, headers: headers, as: :json
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
@@ -219,9 +283,11 @@ RSpec.describe "Api::V1::Recipes", type: :request do
   # レシピを削除（destroy）
   describe "DELETE /api/v1/users/:user_id/recipes/:id" do
     context "有効なユーザーが自分のレシピを削除する場合" do
+      let!(:recipe_to_delete) { create(:recipe, user: user) }
+
       it "ステータス200が返り、レシピがDBから物理削除される" do
         expect {
-          delete "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+          delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
         }.to change { Recipe.count }.by(-1)
 
         expect(response).to have_http_status(:ok)
@@ -229,8 +295,8 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
 
       it "削除後にそのレシピにアクセスするとステータス403が返る" do
-        delete "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
-        get "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+        delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
+        get "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
@@ -238,7 +304,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
       it "削除後にユーザーの recipe_count が減る" do
         expect {
-          delete "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+          delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
           user.reload
         }.to change { user.recipe_count }.by(-1)
       end
