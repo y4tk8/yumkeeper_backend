@@ -4,4 +4,10 @@ FactoryBot.define do
     notes { Faker::Food.description }
     association :user
   end
+
+  trait :add_ingredients do
+    after(:create) do |recipe|
+      create_list(:ingredient, 3, recipe: recipe)
+    end
+  end
 end
