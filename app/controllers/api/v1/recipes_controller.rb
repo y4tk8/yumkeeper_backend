@@ -15,22 +15,11 @@ module Api
 
       def show
         render json: {
-          recipe: {
-            id: @recipe.id,
-            name: @recipe.name,
-            notes: @recipe.notes,
-            created_at: @recipe.created_at,
-            updated_at: @recipe.updated_at,
-            ingredients: @recipe.ingredients.map do |ingredient|
-              {
-                id: ingredient.id,
-                name: ingredient.name,
-                quantity: ingredient.quantity,
-                unit: ingredient.unit,
-                category: ingredient.category
-              }
-            end
-          }
+          recipe: @recipe.as_json(
+            include: {
+              ingredients: { only: [:id, :name, :quantity, :unit, :category] }
+            }
+          )
         }, status: :ok
       end
 
@@ -38,7 +27,7 @@ module Api
         recipe = @user.recipes.build(recipe_params)
 
         if recipe.save
-          render json: { message: "レシピが作成されました", recipe: recipe, ingredient: recipe.ingredients }, status: :created
+          render json: { message: "レシピが作成されました", recipe: recipe.as_json(include: :ingredients) }, status: :created
         else
           render json: { error: "レシピの作成に失敗しました", details: recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
@@ -46,7 +35,7 @@ module Api
 
       def update
         if @recipe.update(recipe_params)
-          render json: { message: "レシピが更新されました", recipe: @recipe, ingredient: @recipe.ingredients }, status: :ok
+          render json: { message: "レシピが更新されました", recipe: @recipe.as_json(include: :ingredients) }, status: :ok
         else
           render json: { error: "レシピの更新に失敗しました", details: @recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
