@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_06_065438) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_06_090607) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -77,7 +77,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_06_065438) do
     t.boolean "is_deleted", default: false, null: false
     t.datetime "cached_at", precision: nil
     t.datetime "created_at", precision: nil, null: false
+    t.index ["cached_at"], name: "index_videos_on_cached_at"
     t.index ["recipe_id"], name: "index_videos_on_recipe_id"
+    t.index ["status", "is_embeddable", "is_deleted"], name: "index_videos_on_status_embeddable_deleted"
+    t.check_constraint "cached_at >= now()", name: "check_cached_at"
   end
 
   add_foreign_key "ingredients", "recipes", on_delete: :cascade
