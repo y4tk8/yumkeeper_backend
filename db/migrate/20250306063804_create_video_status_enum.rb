@@ -6,6 +6,6 @@ class CreateVideoStatusEnum < ActiveRecord::Migration[7.2]
   end
 
   def down
-    execute "DROP TYPE video_status";
+    execute "DROP TYPE video_status;"
   end
 end
