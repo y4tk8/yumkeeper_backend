@@ -10,9 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_01_071654) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_06_065438) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  # Custom types defined in this database.
+  # Note that some types may not work with other database engines. Be careful if changing database.
+  create_enum "video_status", ["public", "private", "unlisted"]
 
   create_table "ingredients", force: :cascade do |t|
     t.bigint "recipe_id", null: false
@@ -23,7 +27,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_01_071654) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["recipe_id"], name: "index_ingredients_on_recipe_id"
-    t.check_constraint "category::text = ANY (ARRAY['ingredient'::character varying, 'seasoning'::character varying]::text[])", name: "check_category_valid"
+    t.check_constraint "category::text = ANY (ARRAY['ingredient'::character varying::text, 'seasoning'::character varying::text])", name: "check_category_valid"
   end
 
   create_table "recipes", force: :cascade do |t|
@@ -65,6 +69,18 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_01_071654) do
     t.check_constraint "role::text = ANY (ARRAY['一般'::character varying::text, '管理者'::character varying::text, 'ゲスト'::character varying::text])", name: "check_role"
   end
 
+  create_table "videos", force: :cascade do |t|
+    t.bigint "recipe_id", null: false
+    t.text "thumbnail", null: false
+    t.enum "status", default: "public", null: false, enum_type: "video_status"
+    t.boolean "is_embeddable", default: true, null: false
+    t.boolean "is_deleted", default: false, null: false
+    t.datetime "cached_at", precision: nil
+    t.datetime "created_at", precision: nil, null: false
+    t.index ["recipe_id"], name: "index_videos_on_recipe_id"
+  end
+
   add_foreign_key "ingredients", "recipes", on_delete: :cascade
   add_foreign_key "recipes", "users"
+  add_foreign_key "videos", "recipes"
 end
