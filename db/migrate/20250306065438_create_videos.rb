@@ -6,8 +6,8 @@ class CreateVideos < ActiveRecord::Migration[7.2]
       t.column :status, :video_status, null: false, default: "public"
       t.boolean :is_embeddable, null: false, default: true
       t.boolean :is_deleted, null: false, default: false
-      t.timestamp :cached_at
-      t.timestamp :created_at, null: false
+
+      t.timestamps
     end
   end
 end
