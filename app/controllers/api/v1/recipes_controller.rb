@@ -17,7 +17,8 @@ module Api
         render json: {
           recipe: @recipe.as_json(
             include: {
-              ingredients: { only: [:id, :name, :quantity, :unit, :category] }
+              ingredients: { only: [:id, :name, :quantity, :unit, :category] },
+              video: { only: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted] }
             }
           )
         }, status: :ok
@@ -27,7 +28,15 @@ module Api
         recipe = @user.recipes.build(recipe_params)
 
         if recipe.save
-          render json: { message: "レシピが作成されました", recipe: recipe.as_json(include: :ingredients) }, status: :created
+          render json: {
+            message: "レシピが作成されました",
+            recipe: recipe.as_json(
+              include: {
+                ingredients: { only: [:id, :name, :quantity, :unit, :category] },
+                video: { only: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted] }
+              }
+            )
+          }, status: :created
         else
           render json: { error: "レシピの作成に失敗しました", details: recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
@@ -35,7 +44,15 @@ module Api
 
       def update
         if @recipe.update(recipe_params)
-          render json: { message: "レシピが更新されました", recipe: @recipe.as_json(include: :ingredients) }, status: :ok
+          render json: {
+            message: "レシピが更新されました",
+            recipe: @recipe.as_json(
+              include: {
+                ingredients: { only: [:id, :name, :quantity, :unit, :category] },
+                video: { only: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted] }
+              }
+            )
+          }, status: :ok
         else
           render json: { error: "レシピの更新に失敗しました", details: @recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
@@ -76,7 +93,8 @@ module Api
       def recipe_params
         params.require(:recipe).permit(
           :name, :notes,
-          ingredients_attributes: [:id, :name, :quantity, :unit, :category, :_destroy] # "_destroy": trueで指定IDの材料を削除
+          ingredients_attributes: [:id, :name, :quantity, :unit, :category, :_destroy], # "_destroy": trueで指定IDの材料を削除
+          video_attributes: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted, :_destroy]
         )
       end
     end
