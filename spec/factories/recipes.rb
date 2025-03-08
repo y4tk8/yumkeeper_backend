@@ -10,4 +10,10 @@ FactoryBot.define do
       create_list(:ingredient, 3, recipe: recipe)
     end
   end
+
+  trait :add_video do
+    after(:create) do |recipe|
+      create(:video, recipe: recipe)
+    end
+  end
 end
