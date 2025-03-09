@@ -9,6 +9,8 @@ Rails.application.routes.draw do
       resources :users do
         resources :recipes, only: [:index, :show, :create, :update, :destroy]
       end
+
+      resources :videos, only: [:update]
     end
   end
 
