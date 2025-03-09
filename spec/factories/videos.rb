@@ -6,6 +6,7 @@ FactoryBot.define do
     status { "public" }
     is_embeddable { true }
     is_deleted { false }
+    cached_at { Time.current }
     association :recipe
   end
 end

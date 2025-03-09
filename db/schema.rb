@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_03_07_115807) do
+ActiveRecord::Schema[7.2].define(version: 2025_03_09_074744) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -27,7 +27,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_115807) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["recipe_id"], name: "index_ingredients_on_recipe_id"
-    t.check_constraint "category::text = ANY (ARRAY['ingredient'::character varying::text, 'seasoning'::character varying::text])", name: "check_category_valid"
+    t.check_constraint "category::text = ANY (ARRAY['ingredient'::character varying, 'seasoning'::character varying]::text[])", name: "check_category_valid"
   end
 
   create_table "recipes", force: :cascade do |t|
@@ -66,7 +66,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_115807) do
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
     t.check_constraint "char_length(username::text) <= 20", name: "check_username_length"
     t.check_constraint "confirmed_at IS NULL OR confirmed_at >= confirmation_sent_at", name: "check_confirmation_times"
-    t.check_constraint "role::text = ANY (ARRAY['一般'::character varying::text, '管理者'::character varying::text, 'ゲスト'::character varying::text])", name: "check_role"
+    t.check_constraint "role::text = ANY (ARRAY['一般'::character varying, '管理者'::character varying, 'ゲスト'::character varying]::text[])", name: "check_role"
   end
 
   create_table "videos", force: :cascade do |t|
@@ -77,9 +77,11 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_07_115807) do
     t.enum "status", default: "public", null: false, enum_type: "video_status"
     t.boolean "is_embeddable", default: true, null: false
     t.boolean "is_deleted", default: false, null: false
+    t.datetime "cached_at", precision: nil, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["recipe_id"], name: "index_videos_on_recipe_id"
+    t.index ["cached_at"], name: "index_videos_on_cached_at"
     t.index ["status", "is_embeddable", "is_deleted"], name: "index_videos_on_status_embeddable_deleted"
     t.index ["video_id"], name: "index_videos_on_video_id"
   end
