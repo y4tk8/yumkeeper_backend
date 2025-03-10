@@ -25,4 +25,18 @@ RSpec.describe Recipe, type: :model do
       end
     end
   end
+
+  describe "dependent: :destroy の動作チェック" do
+    let!(:recipe) { create(:recipe) }
+    let!(:ingredients) { create_list(:ingredient, 3, recipe: recipe) }
+    let!(:video) { create(:video, recipe: recipe) }
+
+    it "レシピを削除すると関連する材料（ingredients）も削除される" do
+      expect { recipe.destroy }.to change { Ingredient.count }.by(-3)
+    end
+
+    it "レシピを削除すると関連する動画（video）も削除される" do
+      expect { recipe.destroy }.to change { Video.count }.by(-1)
+    end
+  end
 end
