@@ -69,4 +69,13 @@ RSpec.describe User, type: :model do
       end
     end
   end
+
+  describe "dependent: :destroy の動作チェック" do
+    let!(:user) { create(:user) }
+    let!(:recipes) { create_list(:recipe, 5, user: user) }
+
+    it "ユーザーを削除すると関連するレシピ（recipe）も削除される" do
+      expect { user.destroy }.to change { Recipe.count }.by(-5)
+    end
+  end
 end
