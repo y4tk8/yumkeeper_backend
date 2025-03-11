@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe "Api::V1::Recipes", type: :request do
   let(:user) { create(:user, :confirmed) } # メール認証済みのユーザー
   let!(:recipes) { create_list(:recipe, 5, user: user) } # レシピを5つ作成
-  let(:recipe) { create(:recipe, :add_ingredients, user: user) } # 材料データ有りのレシピ
+  let(:recipe) { create(:recipe, :add_ingredients, :add_video, user: user) } # 材料・動画データ有りのレシピ
   let(:headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
   let(:other_user) { create(:user, :confirmed) } # 別ユーザー
@@ -81,6 +81,23 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
         expect(response.parsed_body["recipe"]["ingredients"]).to match_array(expected_ingredients)
       end
+
+      it "正しい動画データが返る" do
+        video_response = response.parsed_body["recipe"]["video"]
+        expected_video = {
+          "id" => recipe.video.id,
+          "video_id" => recipe.video.video_id,
+          "etag" => recipe.video.etag,
+          "status" => recipe.video.status,
+          "cached_at" => recipe.video.cached_at
+        }
+
+        expect(video_response["id"]).to eq(expected_video["id"])
+        expect(video_response["video_id"]).to eq(expected_video["video_id"])
+        expect(video_response["etag"]).to eq(expected_video["etag"])
+        expect(video_response["status"]).to eq(expected_video["status"])
+        expect(Time.parse(video_response["cached_at"])).to be_within(1.second).of(expected_video["cached_at"])
+      end
     end
 
     context "自分が保有していないレシピ詳細を取得しようとした場合" do
@@ -104,7 +121,16 @@ RSpec.describe "Api::V1::Recipes", type: :request do
             { name: "豚肉", quantity: 300, unit: "g", category: "ingredient" },
             { name: "ニンジン", quantity: 1.5, unit: "本", category: "ingredient" },
             { name: "カレー粉", quantity: 1, unit: "箱", category: "seasoning" }
-          ]
+          ],
+          video_attributes: {
+            video_id: "abcd1234XYZ",
+            etag: "etag_sample_123",
+            thumbnail: "https://example.com/thumbnail.jpg",
+            status: "public",
+            is_embeddable: true,
+            is_deleted: false,
+            cached_at: Time.current.iso8601(3)
+          }
         }
       }
     end
@@ -164,6 +190,15 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(actual_ingredients.size).to eq(3)
         expect(actual_ingredients).to match_array(expected_ingredients)
       end
+
+      it "レシピと一緒に、動画もDBに保存される" do
+        expect {
+          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: headers, as: :json
+        }.to change(Video, :count).by(1)
+
+        expected_video = valid_params[:recipe][:video_attributes].deep_stringify_keys # キーはシンボルから文字列に変換
+        expect(response.parsed_body["recipe"]["video"].except("id")).to eq(expected_video)
+      end
     end
 
     # ストロングパラメータ
@@ -202,6 +237,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
   describe "PUT /api/v1/users/:user_id/recipes/:id" do
     let(:params_to_update) do
       existing_ingredients = recipe.ingredients.to_a
+      existing_video = recipe.video
       {
         recipe: {
           name: "新しいレシピ名",
@@ -209,7 +245,14 @@ RSpec.describe "Api::V1::Recipes", type: :request do
           ingredients_attributes: [
             { id: existing_ingredients[0].id, name: "新しい材料", quantity: 3, unit: "本", category: "ingredient" },
             { id: existing_ingredients[1].id, _destroy: true }
-          ]
+          ],
+          video_attributes: {
+            id: existing_video.id,
+            etag: "new_etag_456",
+            status: "private",
+            is_embeddable: false,
+            is_deleted: true
+          }
         }
       }
     end
@@ -257,6 +300,18 @@ RSpec.describe "Api::V1::Recipes", type: :request do
           "category": "ingredient"
         )
         expect(deleted_ingredient).to be_nil
+      end
+
+      it "DBの動画データが更新される" do
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
+
+        recipe.video.reload
+        expect(recipe.video).to have_attributes(
+          "etag": "new_etag_456",
+          "status": "private",
+          "is_embeddable": false,
+          "is_deleted": true
+        )
       end
     end
 
