@@ -125,7 +125,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
           video_attributes: {
             video_id: "abcd1234XYZ",
             etag: "etag_sample_123",
-            thumbnail: "https://example.com/thumbnail.jpg",
+            thumbnail_url: "https://example.com/thumbnail.jpg",
             status: "public",
             is_embeddable: true,
             is_deleted: false,

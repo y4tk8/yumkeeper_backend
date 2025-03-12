@@ -18,7 +18,7 @@ module Api
           recipe: @recipe.as_json(
             include: {
               ingredients: { only: [:id, :name, :quantity, :unit, :category] },
-              video: { only: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted, :cached_at] }
+              video: { only: [:id, :video_id, :etag, :thumbnail_url, :status, :is_embeddable, :is_deleted, :cached_at] }
             }
           )
         }, status: :ok
@@ -33,7 +33,7 @@ module Api
             recipe: recipe.as_json(
               include: {
                 ingredients: { only: [:id, :name, :quantity, :unit, :category] },
-                video: { only: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted, :cached_at] }
+                video: { only: [:id, :video_id, :etag, :thumbnail_url, :status, :is_embeddable, :is_deleted, :cached_at] }
               }
             )
           }, status: :created
@@ -49,7 +49,7 @@ module Api
             recipe: @recipe.as_json(
               include: {
                 ingredients: { only: [:id, :name, :quantity, :unit, :category] },
-                video: { only: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted, :cached_at] }
+                video: { only: [:id, :video_id, :etag, :thumbnail_url, :status, :is_embeddable, :is_deleted, :cached_at] }
               }
             )
           }, status: :ok
@@ -94,7 +94,7 @@ module Api
         params.require(:recipe).permit(
           :name, :notes,
           ingredients_attributes: [:id, :name, :quantity, :unit, :category, :_destroy], # "_destroy": trueで指定IDの材料を削除
-          video_attributes: [:id, :video_id, :etag, :thumbnail, :status, :is_embeddable, :is_deleted, :cached_at, :_destroy]
+          video_attributes: [:id, :video_id, :etag, :thumbnail_url, :status, :is_embeddable, :is_deleted, :cached_at, :_destroy]
         )
       end
     end
