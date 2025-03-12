@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :video do
-    video_id { "abcd1234XYZ" } # 仮のYouTube Video ID
-    etag { "etag_sample_123" } # 仮のETag
+    video_id { "abcd1234XYZ" } # YouTube動画を一意に識別するID
+    etag { "etag_sample_123" }
     thumbnail_url { "https://example.com/thumbnail.jpg " }
     status { "public" }
     is_embeddable { true }
