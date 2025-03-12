@@ -2,7 +2,7 @@ require "rails_helper"
 
 RSpec.describe "Api::V1::Recipes", type: :request do
   let(:user) { create(:user, :confirmed) } # メール認証済みのユーザー
-  let!(:recipes) { create_list(:recipe, 5, user: user) } # レシピを5つ作成
+  let!(:recipes) { create_list(:recipe, 5, :add_video, user: user) } # 動画データ有りのレシピを5つ作成
   let(:recipe) { create(:recipe, :add_ingredients, :add_video, user: user) } # 材料・動画データ有りのレシピ
   let(:headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
@@ -25,8 +25,14 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(response.parsed_body["recipe_count"]).to eq(5)
       end
 
-      it "作成日時の降順でレシピを取得する" do
-        expect(response.parsed_body["recipes"].pluck("id")).to eq(recipes.sort_by(&:created_at).reverse.pluck(:id))
+      it "各レシピに動画サムネイルが1件ずつ紐付いている" do
+        response.parsed_body["recipes"].each do |recipe|
+          expect(recipe["thumbnail_url"]).to be_present
+        end
+      end
+
+      it "更新日時の降順でレシピを取得する" do
+        expect(response.parsed_body["recipes"].pluck("id")).to eq(recipes.sort_by(&:updated_at).reverse.pluck(:id))
       end
     end
 
