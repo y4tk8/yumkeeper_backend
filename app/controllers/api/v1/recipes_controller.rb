@@ -9,8 +9,20 @@ module Api
       before_action :set_recipe, only: [:show, :update, :destroy]
 
       def index
-        recipes = @user.recipes.order(created_at: :desc)
-        render json: { recipes: recipes, recipe_count: @user.recipe_count }, status: :ok
+        recipes = @user.recipes.includes(:video).order(updated_at: :desc)
+
+        # 各レシピデータに動画サムネイルを含めるよう整形
+        recipe_data = recipes.map do |recipe|
+          {
+            id: recipe.id,
+            name: recipe.name,
+            created_at: recipe.created_at,
+            updated_at: recipe.updated_at,
+            thumbnail_url: recipe.video&.thumbnail_url
+          }
+        end
+
+        render json: { recipes: recipe_data, recipe_count: @user.recipe_count }, status: :ok
       end
 
       def show
