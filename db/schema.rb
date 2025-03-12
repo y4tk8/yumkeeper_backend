@@ -71,17 +71,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_09_074744) do
 
   create_table "videos", force: :cascade do |t|
     t.bigint "recipe_id", null: false
-    t.string "video_id", limit: 11, null: false
-    t.string "etag", limit: 255
-    t.text "thumbnail", null: false
+    t.text "thumbnail_url", null: false
     t.enum "status", default: "public", null: false, enum_type: "video_status"
     t.boolean "is_embeddable", default: true, null: false
     t.boolean "is_deleted", default: false, null: false
-    t.datetime "cached_at", precision: nil, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["recipe_id"], name: "index_videos_on_recipe_id"
+    t.string "video_id", limit: 11, null: false
+    t.string "etag", limit: 255
+    t.datetime "cached_at", precision: nil, null: false
     t.index ["cached_at"], name: "index_videos_on_cached_at"
+    t.index ["recipe_id"], name: "index_videos_on_recipe_id"
     t.index ["status", "is_embeddable", "is_deleted"], name: "index_videos_on_status_embeddable_deleted"
     t.index ["video_id"], name: "index_videos_on_video_id"
   end
