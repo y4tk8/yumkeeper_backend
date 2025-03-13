@@ -11,6 +11,12 @@ module Api
       def index
         recipes = @user.recipes.includes(:video).order(updated_at: :desc)
 
+        # ページネーション情報 と 現在のページのレシピデータ（配列）を分割代入
+        pagy, recipes = pagy(recipes)
+
+        # ページネーション情報をレスポンスヘッダーに追加
+        pagy_headers_merge(pagy)
+
         # 各レシピデータに動画サムネイルを含めるよう整形
         recipe_data = recipes.map do |recipe|
           {
@@ -22,7 +28,7 @@ module Api
           }
         end
 
-        render json: { recipes: recipe_data, recipe_count: @user.recipe_count }, status: :ok
+        render json: { recipes: recipe_data }, status: :ok
       end
 
       def show
