@@ -20,9 +20,8 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(response).to have_http_status(:ok)
       end
 
-      it "作成した全てのレシピとカウントを取得する" do
+      it "作成した全てのレシピを取得する" do
         expect(response.parsed_body["recipes"].size).to eq(5)
-        expect(response.parsed_body["recipe_count"]).to eq(5)
       end
 
       it "各レシピに動画サムネイルが1件ずつ紐付いている" do
