@@ -16,11 +16,8 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         get "/api/v1/users/#{user.id}/recipes", headers: headers, as: :json
       end
 
-      it "リクエストが成功し、ステータス200が返る" do
+      it "ステータス200が返り、作成した全てのレシピを取得する" do
         expect(response).to have_http_status(:ok)
-      end
-
-      it "作成した全てのレシピを取得する" do
         expect(response.parsed_body["recipes"].size).to eq(5)
       end
 
@@ -32,6 +29,13 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
       it "更新日時の降順でレシピを取得する" do
         expect(response.parsed_body["recipes"].pluck("id")).to eq(recipes.sort_by(&:updated_at).reverse.pluck(:id))
+      end
+
+      it "レスポンスヘッダーにページネーション情報を含む" do
+        expect(response.headers["Current-Page"]).to eq("1")
+        expect(response.headers["Page-Items"]).to eq("20")
+        expect(response.headers["Total-Count"]).to eq("5")
+        expect(response.headers["Total-Pages"]).to eq("1")
       end
     end
 
