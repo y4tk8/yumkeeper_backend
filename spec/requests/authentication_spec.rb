@@ -1,11 +1,68 @@
 require "rails_helper"
 
 RSpec.describe "User Authentication", type: :request do
-  # メール認証済みのユーザー
-  let(:user) { create(:user, :confirmed) }
+  # ユーザーのサインアップ
+  describe "POST /api/v1/auth" do
+    let(:valid_params) do
+      {
+        email: "test@example.com",
+        password: "Password1",
+        password_confirmation: "Password1"
+      }
+    end
+
+    context "正しいメールアドレス、パスワード、確認用パスワードの場合" do
+      it "サインアップが成功し、ステータス200が返る" do
+        post "/api/v1/auth", params: valid_params
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "Usersテーブルのレコードが1増える" do
+        expect {
+          post "/api/v1/auth", params: valid_params
+        }.to change { User.count }.by(1)
+      end
+
+      it "アカウント認証メールが送信される" do
+        expect {
+          post "/api/v1/auth", params: valid_params
+        }.to change { ActionMailer::Base.deliveries.count }.by(1)
+      end
+    end
+
+    context "重複するメールアドレスがDBに存在する場合" do
+      it "リクエストが失敗し、ステータス422が返る" do
+        create(:user, email: valid_params[:email])
+
+        post "/api/v1/auth", params: valid_params
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["errors"]["email"]).to include("入力したメールアドレスはすでに存在します")
+      end
+    end
+
+    context "パスワードが8文字未満 または 確認用パスワードと一致しない場合" do
+      it "エラーメッセージと共に、ステータス422が返る（パスワードが8文字未満）" do
+        post "/api/v1/auth", params: { email: "test@example.com", password: "Pass1", password_confirmation: "Pass1" }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["errors"]["password"]).to include("パスワードは英字と数字を含んだ8文字以上にしてください")
+      end
+
+      it "エラーメッセージと共に、ステータス422が返る（確認用パスワードと不一致）" do
+        post "/api/v1/auth", params: { email: "test@example.com", password: "Password1", password_confirmation: "DifferentPass1" }
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["errors"]["password_confirmation"]).to include("入力したパスワードが一致しません")
+      end
+    end
+  end
 
   # ユーザーのサインイン
   describe "POST /api/v1/auth/sign_in" do
+    let(:user) { create(:user, :confirmed) }
+
     context "正しいメールアドレスとパスワードの場合" do
       it "サインインが成功し、ステータス200が返る" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }
@@ -58,6 +115,8 @@ RSpec.describe "User Authentication", type: :request do
 
   # ユーザーのサインアウト
   describe "DELETE /api/v1/auth/sign_out" do
+    let(:user) { create(:user, :confirmed) }
+
     # サインインで認証情報をレスポンスとして取得
     let(:headers) do
       post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }
@@ -85,16 +144,14 @@ RSpec.describe "User Authentication", type: :request do
     end
 
     context "認証情報がない、または間違っている場合" do
-      # 認証情報がない
-      it "サインアウトに失敗し、ステータス404が返る" do
+      it "サインアウトに失敗し、ステータス404が返る（認証情報がない）" do
         delete "/api/v1/auth/sign_out"
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["errors"]).to include("ユーザーが見つからないか、ログインしていません。")
       end
 
-      # 認証情報が間違っている
-      it "サインアウトに失敗し、ステータス404が返る" do
+      it "サインアウトに失敗し、ステータス404が返る（認証情報が間違っている）" do
         invalid_headers = {
           "access-token" => "invalid_token",
           "client" => "invalid_client",
@@ -111,6 +168,8 @@ RSpec.describe "User Authentication", type: :request do
 
   # ユーザーの退会
   describe "DELETE /api/v1/auth" do
+    let(:user) { create(:user, :confirmed) }
+
     let(:headers) do
       # サインインで認証情報をレスポンスとして取得
       post "/api/v1/auth/sign_in", params: { email: user.email, password: user.password }
@@ -140,16 +199,14 @@ RSpec.describe "User Authentication", type: :request do
     end
 
     context "認証情報がない、または間違っている場合" do
-      # 認証情報がない
-      it "退会処理に失敗し、ステータス404が返る" do
+      it "退会処理に失敗し、ステータス404が返る（認証情報がない）" do
         delete "/api/v1/auth"
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["message"]).to include("ユーザーが見つかりません。")
       end
 
-      # 認証情報が間違っている
-      it "退会処理に失敗し、ステータス404が返る" do
+      it "退会処理に失敗し、ステータス404が返る（認証情報が間違っている）" do
         invalid_headers = {
           "access-token" => "invalid_token",
           "client" => "invalid_client",
