@@ -22,10 +22,6 @@ RSpec.describe "Password Reset", type: :request do
         expect(user.reset_password_sent_at).to be_within(3.second).of(Time.current) # 3秒以内の誤差を許容する
       end
     end
-
-    # NOTE: 後で書く（現在は未登録メールアドレスでもステータス200が返る）
-    # context "メールアドレスが未登録の場合" do
-    # end
   end
 
   # リダイレクト先（パスワード更新ページ）URLへGET
