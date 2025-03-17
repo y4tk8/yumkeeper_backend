@@ -30,9 +30,8 @@ class User < ActiveRecord::Base
     is_deleted ? "退会済みのユーザーです。" : super
   end
 
-  # ユーザーの登録レシピ数を返す
-  def recipe_count
-    recipes.count
+  def delete_recipes
+    recipes.destroy_all
   end
 
   private
