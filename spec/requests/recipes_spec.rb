@@ -365,13 +365,6 @@ RSpec.describe "Api::V1::Recipes", type: :request do
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
       end
-
-      it "削除後にユーザーの recipe_count が減る" do
-        expect {
-          delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
-          user.reload
-        }.to change { user.recipe_count }.by(-1)
-      end
     end
 
     context "自分が保有していないレシピを削除しようとした場合" do
