@@ -169,6 +169,7 @@ RSpec.describe "User Authentication", type: :request do
   # ユーザーの退会
   describe "DELETE /api/v1/auth" do
     let(:user) { create(:user, :confirmed) }
+    let!(:recipes) { create_list(:recipe, 3, user: user) }
 
     let(:headers) do
       # サインインで認証情報をレスポンスとして取得
@@ -196,6 +197,10 @@ RSpec.describe "User Authentication", type: :request do
         expect(user.confirmed_at).to be_nil
         expect(user.tokens).to be_empty
       end
+
+      it "関連するレシピが全て削除される" do
+        expect { delete "/api/v1/auth", headers: headers }.to change { Recipe.count }.by(-3)
+      end
     end
 
     context "認証情報がない、または間違っている場合" do
@@ -203,7 +208,7 @@ RSpec.describe "User Authentication", type: :request do
         delete "/api/v1/auth"
 
         expect(response).to have_http_status(:not_found)
-        expect(response.parsed_body["message"]).to include("ユーザーが見つかりません。")
+        expect(response.parsed_body["error"]).to include("ユーザーが見つかりません。")
       end
 
       it "退会処理に失敗し、ステータス404が返る（認証情報が間違っている）" do
@@ -216,7 +221,28 @@ RSpec.describe "User Authentication", type: :request do
         delete "/api/v1/auth", headers: invalid_headers
 
         expect(response).to have_http_status(:not_found)
-        expect(response.parsed_body["message"]).to include("ユーザーが見つかりません。")
+        expect(response.parsed_body["error"]).to include("ユーザーが見つかりません。")
+      end
+    end
+
+    context "トランザクション処理の確認" do
+      before do
+        allow_any_instance_of(User).to receive(:delete_recipes).and_raise(StandardError)
+      end
+
+      it "エラーが発生した場合、ユーザーは論理削除されない" do
+        expect { delete "/api/v1/auth", headers: headers }.not_to change { user.reload.is_deleted }
+      end
+
+      it "エラーが発生した場合、関連するレシピは削除されない" do
+        expect { delete "/api/v1/auth", headers: headers }.not_to change { Recipe.count }
+      end
+
+      it "退会処理に失敗し、ステータス500が返る" do
+        delete "/api/v1/auth", headers: headers
+
+        expect(response).to have_http_status(:internal_server_error)
+        expect(response.parsed_body["error"]).to include("退会処理に失敗しました。")
       end
     end
   end
