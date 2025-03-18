@@ -7,7 +7,11 @@ Rails.application.routes.draw do
         passwords:     "api/v1/auth/passwords"
       }
 
-      resources :users do
+      resources :users, only: [:show, :update] do
+        member do
+          delete :delete_profile_image
+        end
+
         resources :recipes, only: [:index, :show, :create, :update, :destroy]
       end
 
