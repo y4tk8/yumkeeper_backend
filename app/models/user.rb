@@ -1,6 +1,9 @@
 class User < ActiveRecord::Base
   has_many :recipes, dependent: :destroy
 
+  has_one_attached :profile_image
+  validate :validate_profile_image
+
   devise :database_authenticatable, :registerable,
          :recoverable, :validatable, :confirmable
   # :lockable, :timeoutable, :trackable, :omniauthable, :rememberable
@@ -34,6 +37,15 @@ class User < ActiveRecord::Base
     recipes.destroy_all
   end
 
+  # プロフィール画像のURLを取得
+  def profile_image_url
+    if profile_image.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(profile_image, only_path: true)
+    else
+      default_image_url
+    end
+  end
+
   private
 
   def downcase_email
@@ -43,5 +55,28 @@ class User < ActiveRecord::Base
   # Devise の既定パスワードバリデーションを適用
   def password_required?
     new_record? || password.present? || password_confirmation.present?
+  end
+
+  # プロフィール画像のバリデーション（サイズと形式）
+  def validate_profile_image
+    return unless profile_image.attached?
+
+    if profile_image.blob.byte_size > 5.megabytes
+      errors.add(:profile_image, "は5MB以下にしてください")
+    end
+
+    unless profile_image.blob.content_type.in?(%w[image/jpeg image/png image/gif image/webp])
+      errors.add(:profile_image, "はJPEG, PNG, GIF, WEBP形式のみアップロード可能です")
+    end
+  end
+
+  # デフォルトのプロフィール画像を取得
+  # NOTE: AWS構築を終えたらS3のURLを書く
+  def default_image_url
+    if Rails.env.production?
+      # S3 のURL
+    else
+      "/default_profile_image.png" # 開発・テスト環境用のローカル相対パス
+    end
   end
 end
