@@ -55,7 +55,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_18_051532) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["recipe_id"], name: "index_ingredients_on_recipe_id"
-    t.check_constraint "category::text = ANY (ARRAY['ingredient'::character varying::text, 'seasoning'::character varying::text])", name: "check_category_valid"
+    t.check_constraint "category::text = ANY (ARRAY['ingredient'::character varying, 'seasoning'::character varying]::text[])", name: "check_category_valid"
   end
 
   create_table "recipes", force: :cascade do |t|
@@ -92,7 +92,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_03_18_051532) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
     t.index ["uid", "provider"], name: "index_users_on_uid_and_provider", unique: true
     t.check_constraint "char_length(username::text) <= 20", name: "check_username_length"
-    t.check_constraint "role::text = ANY (ARRAY['一般'::character varying::text, '管理者'::character varying::text, 'ゲスト'::character varying::text])", name: "check_role"
+    t.check_constraint "role::text = ANY (ARRAY['一般'::character varying, '管理者'::character varying, 'ゲスト'::character varying]::text[])", name: "check_role"
   end
 
   create_table "videos", force: :cascade do |t|

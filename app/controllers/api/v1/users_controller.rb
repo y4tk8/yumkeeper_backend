@@ -11,7 +11,7 @@ module Api
         render json: {
           user: {
             id: @user.id,
-            username: @user.username || "未設定",
+            username: @user.username,
             profile_image_url: @user.profile_image_url
           }
         }, status: :ok
@@ -28,7 +28,7 @@ module Api
             message: "プロフィールを更新しました",
             user: {
               id: @user.id,
-              username: @user.username || "未設定",
+              username: @user.username,
               profile_image_url: @user.profile_image_url
             }
           }, status: :ok

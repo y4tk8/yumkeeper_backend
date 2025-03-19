@@ -18,7 +18,7 @@ RSpec.describe Recipe, type: :model do
         expect(recipe.errors["name"]).to include("レシピ名を入力してください")
       end
 
-      it "レシピ名が100文字以上だと無効" do
+      it "レシピ名が101文字以上だと無効" do
         recipe = user.recipes.build(name: "a" * 101, notes: "テストのメモ")
         expect(recipe).to be_invalid
         expect(recipe.errors["name"]).to include("レシピ名は100文字以内で入力してください")

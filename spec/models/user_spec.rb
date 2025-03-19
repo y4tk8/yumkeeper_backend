@@ -70,6 +70,24 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "プロフィール情報のバリデーションチェック" do
+    let(:user) { build(:user) }
+
+    context "有効な場合" do
+      it "ユーザー名が適切なら有効" do
+        expect(user).to be_valid
+      end
+    end
+
+    context "無効な場合" do
+      it "ユーザー名が21文字以上だと無効" do
+        user.username = "a" * 21
+        expect(user).to be_invalid
+        expect(user.errors["username"]).to include("ユーザー名は20文字以内で入力してください")
+      end
+    end
+  end
+
   describe "dependent: :destroy の動作チェック" do
     let!(:user) { create(:user) }
     let!(:recipes) { create_list(:recipe, 5, user: user) }

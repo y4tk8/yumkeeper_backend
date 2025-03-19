@@ -1,9 +1,5 @@
 class User < ActiveRecord::Base
-  has_many :recipes, dependent: :destroy
-
-  has_one_attached :profile_image
-  validate :validate_profile_image
-
+  # Devise の設定
   devise :database_authenticatable, :registerable,
          :recoverable, :validatable, :confirmable
   # :lockable, :timeoutable, :trackable, :omniauthable, :rememberable
@@ -11,7 +7,9 @@ class User < ActiveRecord::Base
   # DeviseTokenAuth の設定
   include DeviseTokenAuth::Concerns::User
 
-  # Devise の既定バリデーションに追加
+  has_many :recipes, dependent: :destroy
+  has_one_attached :profile_image
+
   # メールアドレスの形式チェック。英字の大文字小文字を区別しない。
   VALID_EMAIL_REGEX = /\A[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\z/i
   validates :email, format: { with:    VALID_EMAIL_REGEX,
@@ -23,6 +21,9 @@ class User < ActiveRecord::Base
   validates :password, format: { with:    VALID_PASSWORD_REGEX,
                                  message: "パスワードは英字と数字を含んだ8文字以上にしてください" }, if: :password_required?
 
+  validate  :validate_profile_image
+  validates :username, length: { maximum: 20 }
+
   # Devise Token Auth のサインイン時に退会済みユーザーは認証エラーにする
   def active_for_authentication?
     super && !is_deleted
@@ -33,6 +34,7 @@ class User < ActiveRecord::Base
     is_deleted ? "退会済みのユーザーです。" : super
   end
 
+  # NOTE: ユーザー論理削除の際に呼び出す
   def delete_recipes
     recipes.destroy_all
   end
