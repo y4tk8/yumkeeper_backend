@@ -2,6 +2,10 @@ ja:
   activerecord:
     errors:
       models:
+        user:
+          attributes:
+            username:
+              too_long: "ユーザー名は%{count}文字以内で入力してください"
         recipe:
           attributes:
             name:
