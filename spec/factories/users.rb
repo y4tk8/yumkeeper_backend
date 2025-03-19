@@ -4,6 +4,7 @@ FactoryBot.define do
     email { Faker::Internet.unique.email } # 一意でランダムなメールアドレスを生成
     password { "Password1" }
     password_confirmation { password }
+    username { "テストユーザー" }
 
     # メール認証に成功
     trait :confirmed do
