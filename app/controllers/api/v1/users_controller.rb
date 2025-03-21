@@ -1,9 +1,6 @@
 module Api
   module V1
     class UsersController < ApplicationController
-      # モデル名をキーにJSONデータを自動ラップする機能をオフに
-      wrap_parameters false
-
       before_action :authenticate_api_v1_user! # Devise Token Authでユーザーのサインインを必須に
       before_action :set_user
 
