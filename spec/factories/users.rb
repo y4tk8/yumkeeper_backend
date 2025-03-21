@@ -15,5 +15,16 @@ FactoryBot.define do
     trait :deleted do
       is_deleted { true }
     end
+
+    # プロフィール画像をアップロード済み
+    trait :with_profile_image do
+      after(:build) do |user|
+        user.profile_image.attach(
+          io: File.open(Rails.root.join("spec/fixtures/profile_image.webp")),
+          filename: "profile_image.webp",
+          content_type: "image/webp"
+        )
+      end
+    end
   end
 end

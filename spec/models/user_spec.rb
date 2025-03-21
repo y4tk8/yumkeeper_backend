@@ -70,11 +70,31 @@ RSpec.describe User, type: :model do
     end
   end
 
+  describe "dependent: :destroy の動作チェック" do
+    let!(:user) { create(:user) }
+    let!(:recipes) { create_list(:recipe, 5, user: user) }
+
+    it "ユーザーを削除すると関連するレシピ（recipe）も削除される" do
+      expect { user.destroy }.to change { Recipe.count }.by(-5)
+    end
+  end
+
   describe "プロフィール情報のバリデーションチェック" do
     let(:user) { build(:user) }
 
     context "有効な場合" do
       it "ユーザー名が適切なら有効" do
+        expect(user).to be_valid
+      end
+
+      it "画像が適切なら正常にアップロードされる" do
+        user.profile_image.attach(
+          io: File.open(Rails.root.join("spec/fixtures/profile_image.webp")),
+          filename: "profile_image.webp",
+          content_type: "image/webp"
+        )
+
+        expect(user.profile_image).to be_attached
         expect(user).to be_valid
       end
     end
@@ -85,15 +105,50 @@ RSpec.describe User, type: :model do
         expect(user).to be_invalid
         expect(user.errors["username"]).to include("ユーザー名は20文字以内で入力してください")
       end
+
+      it "画像サイズが5MBを超えると無効" do
+        large_file = Tempfile.new(["large_image", ".jpg"])
+        large_file.write("a" * 5.1.megabytes)
+        large_file.rewind
+
+        user.profile_image.attach(
+          io: large_file,
+          filename: "large_image.jpg",
+          content_type: "image/jpeg"
+        )
+
+        expect(user).to be_invalid
+        expect(user.errors[:profile_image]).to include("プロフィール画像は5MB以下にしてください")
+      end
+
+      it "許可されていない形式の画像をアップロードすると無効" do
+        user.profile_image.attach(
+          io: File.open(Rails.root.join("spec/fixtures/invalid_image.txt")),
+          filename: "invalid_image.txt",
+          content_type: "text/plain"
+        )
+
+        expect(user).to be_invalid
+        expect(user.errors[:profile_image]).to include("プロフィール画像はJPEG, PNG, GIF, WEBP形式のみアップロード可能です")
+      end
     end
   end
 
-  describe "dependent: :destroy の動作チェック" do
-    let!(:user) { create(:user) }
-    let!(:recipes) { create_list(:recipe, 5, user: user) }
+  describe "#profile_image_url" do
+    context "画像がアップロード済みの場合" do
+      let(:user) { create(:user, :with_profile_image) }
 
-    it "ユーザーを削除すると関連するレシピ（recipe）も削除される" do
-      expect { user.destroy }.to change { Recipe.count }.by(-5)
+      it "アップロードされた画像のURLを返す" do
+        expect(user.profile_image_url).to include("/rails/active_storage/blobs/")
+      end
+    end
+
+    context "画像がアップロードされていない場合" do
+      let(:user) { create(:user) }
+
+      it "デフォルトの画像URLを返す" do
+        expect(user.profile_image_url).to eq("/default_profile_image.png")
+      end
     end
   end
 end
