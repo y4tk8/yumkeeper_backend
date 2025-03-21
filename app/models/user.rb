@@ -66,11 +66,11 @@ class User < ActiveRecord::Base
     return unless profile_image.attached?
 
     if profile_image.blob.byte_size > 5.megabytes
-      errors.add(:profile_image, "は5MB以下にしてください")
+      errors.add(:profile_image, "プロフィール画像は5MB以下にしてください")
     end
 
     unless profile_image.blob.content_type.in?(%w[image/jpeg image/png image/gif image/webp])
-      errors.add(:profile_image, "はJPEG, PNG, GIF, WEBP形式のみアップロード可能です")
+      errors.add(:profile_image, "プロフィール画像はJPEG, PNG, GIF, WEBP形式のみアップロード可能です")
     end
   end
 
