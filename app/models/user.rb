@@ -10,7 +10,9 @@ class User < ActiveRecord::Base
   has_many :recipes, dependent: :destroy
   has_one_attached :profile_image
 
-  # メールアドレスの形式チェック。英字の大文字小文字を区別しない。
+  ## メールアドレス/パスワードのDeviseの既定バリデーションを以下でオーバーライド
+
+  # メールアドレスの形式チェック。英字の大文字小文字を区別しない
   VALID_EMAIL_REGEX = /\A[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\z/i
   validates :email, format: { with:    VALID_EMAIL_REGEX,
                               message: "メールアドレスは正しい形式で入力してください" }
