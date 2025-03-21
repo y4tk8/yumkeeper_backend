@@ -9,10 +9,24 @@ module Api
             begin
               ActiveRecord::Base.transaction do
                 current_api_v1_user.delete_recipes
-                current_api_v1_user.update!(is_deleted: true, confirmed_at: nil, tokens: {})
+
+                # メールアドレスをユニーク値に変更。退会ユーザーが同一メールアドレスで再登録できるように。
+                email_prefix, email_domain = current_api_v1_user.email.split("@")
+                new_email = "#{email_prefix}_deleted_#{SecureRandom.hex(6)}@#{email_domain}"
+
+                current_api_v1_user.update!(
+                  is_deleted: true,
+                  confirmed_at: nil,
+                  tokens: {},
+                  email: new_email
+                )
               end
               render json: { message: "退会処理が正常に完了しました。" }, status: :ok
+            rescue ActiveRecord::RecordInvalid => e
+              Rails.logger.error "退会処理バリデーションエラー: #{e.record.errors.full_messages.join(', ')}"
+              render json: { error: "退会処理に失敗しました。", details: "#{e.record.errors.full_messages.join(', ')}" }, status: :internal_server_error
             rescue => e
+              Rails.logger.error "退会処理エラー: #{e.message}"
               render json: { error: "退会処理に失敗しました。" }, status: :internal_server_error
             end
           else
