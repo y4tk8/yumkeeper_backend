@@ -1,9 +1,6 @@
 module Api
   module V1
     class VideosController < ApplicationController
-      # モデル名をキーにJSONデータを自動ラップする機能をオフに
-      wrap_parameters false
-
       before_action :authenticate_api_v1_user! # Devise Token Authでユーザーのサインインを必須に
       before_action :set_video
       before_action :authorize_user
@@ -34,6 +31,7 @@ module Api
         end
       end
 
+      # ストロングパラメータ
       def video_params
         params.require(:video).permit(:etag, :status, :is_embeddable, :is_deleted, :cached_at)
       end
