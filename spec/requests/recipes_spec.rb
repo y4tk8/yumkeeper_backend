@@ -1,19 +1,19 @@
 require "rails_helper"
 
 RSpec.describe "Api::V1::Recipes", type: :request do
-  let(:user) { create(:user, :confirmed) } # メール認証済みのユーザー
-  let!(:recipes) { create_list(:recipe, 5, :add_video, user: user) } # 動画データ有りのレシピを5つ作成
-  let(:recipe) { create(:recipe, :add_ingredients, :add_video, user: user) } # 材料・動画データ有りのレシピ
-  let(:headers) { user.create_new_auth_token } # Devise Token Authの認証情報
+  let(:user) { create(:user, :confirmed) }
+  let!(:recipes) { create_list(:recipe, 5, :with_video, user: user) }
+  let(:recipe) { create(:recipe, :with_ingredients, :with_video, user: user) }
+  let(:auth_headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
-  let(:other_user) { create(:user, :confirmed) } # 別ユーザー
-  let!(:other_recipe) { create(:recipe, user: other_user) } # 別ユーザーのレシピ作成
+  let(:other_user) { create(:user, :confirmed) }
+  let!(:other_recipe) { create(:recipe, user: other_user) }
 
   # ユーザーごとのレシピ一覧を取得（index）
   describe "GET /api/v1/users/:user_id/recipes" do
     context "有効なユーザーが自分のレシピ一覧を取得する場合" do
       before do
-        get "/api/v1/users/#{user.id}/recipes", headers: headers, as: :json
+        get "/api/v1/users/#{user.id}/recipes", headers: auth_headers
       end
 
       it "ステータス200が返り、作成した全てのレシピを取得する" do
@@ -41,7 +41,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     context "別のユーザーのレシピ一覧を取得しようとした場合" do
       it "レシピ取得に失敗し、ステータス403が返る" do
-        get "/api/v1/users/#{other_user.id}/recipes", headers: headers, as: :json
+        get "/api/v1/users/#{other_user.id}/recipes", headers: auth_headers
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("アクセス権限がありません。")
@@ -61,7 +61,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
   # ユーザーごとのレシピ詳細を取得（show）
   describe "GET /api/v1/users/:user_id/recipes/:id" do
     before do
-      get "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: headers, as: :json
+      get "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: auth_headers
     end
 
     context "有効なユーザーが自分のレシピ詳細を取得する場合" do
@@ -111,7 +111,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     context "自分が保有していないレシピ詳細を取得しようとした場合" do
       it "レシピ取得に失敗し、ステータス403が返る" do
-        get "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", headers: headers, as: :json
+        get "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", headers: auth_headers
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
@@ -121,58 +121,33 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
   # レシピを登録（create）
   describe "POST /api/v1/users/:user_id/recipes" do
-    let(:valid_params) do
-      {
-        recipe: {
-          name: "カレーライス",
-          notes: "カレー粉はブレンドする",
-          ingredients_attributes: [
-            { name: "豚肉", quantity: 300, unit: "g", category: "ingredient" },
-            { name: "ニンジン", quantity: 1.5, unit: "本", category: "ingredient" },
-            { name: "カレー粉", quantity: 1, unit: "箱", category: "seasoning" }
-          ],
-          video_attributes: {
-            video_id: "abcd1234XYZ",
-            etag: "etag_sample_123",
-            thumbnail_url: "https://example.com/thumbnail.jpg",
-            status: "public",
-            is_embeddable: true,
-            is_deleted: false,
-            cached_at: Time.current.iso8601(3)
+    context "リクエストが正常な場合" do
+      let(:valid_params) do
+        {
+          recipe: {
+            name: "カレーライス",
+            notes: "カレー粉はブレンドする",
+            ingredients_attributes: [
+              { name: "豚肉", quantity: 300, unit: "g", category: "ingredient" },
+              { name: "ニンジン", quantity: 1.5, unit: "本", category: "ingredient" },
+              { name: "カレー粉", quantity: 1, unit: "箱", category: "seasoning" }
+            ],
+            video_attributes: {
+              video_id: "abcd1234XYZ",
+              etag: "etag_sample_123",
+              thumbnail_url: "https://example.com/thumbnail.jpg",
+              status: "public",
+              is_embeddable: true,
+              is_deleted: false,
+              cached_at: Time.current.iso8601(3)
+            }
           }
         }
-      }
-    end
+      end
 
-    let(:invalid_params_no_recipe) do
-      {
-        name: "カレーライス",
-        notes: "カレー粉はブレンドする"
-      }
-    end
-
-    let(:invalid_params_no_name) do
-      {
-        recipe: {
-          notes: "カレー粉はブレンドする"
-        }
-      }
-    end
-
-    let(:extra_params) do
-      {
-        recipe: {
-          name: "カレーライス",
-          notes: "カレー粉はブレンドする",
-          image: "不要なデータ"
-        }
-      }
-    end
-
-    context "リクエストが正常な場合" do
       it "ステータス201が返り、レシピがDBに保存される" do
         expect {
-          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: headers, as: :json
+          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: auth_headers, as: :json
         }.to change(Recipe, :count).by(1)
 
         expect(response).to have_http_status(:created)
@@ -183,7 +158,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
       it "レシピと一緒に、材料もDBに保存される" do
         expect {
-          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: headers, as: :json
+          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: auth_headers, as: :json
         }.to change(Ingredient, :count).by(3)
 
         expected_ingredients = [
@@ -202,7 +177,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
       it "レシピと一緒に、動画もDBに保存される" do
         expect {
-          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: headers, as: :json
+          post "/api/v1/users/#{user.id}/recipes", params: valid_params, headers: auth_headers, as: :json
         }.to change(Video, :count).by(1)
 
         expected_video = valid_params[:recipe][:video_attributes].deep_stringify_keys # キーはシンボルから文字列に変換
@@ -212,8 +187,15 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     # ストロングパラメータ
     context "パラメータにrecipeキーがない場合" do
+      let(:invalid_params_no_recipe) do
+        {
+          name: "カレーライス",
+          notes: "カレー粉はブレンドする"
+        }
+      end
+
       it "リクエストが失敗し、ステータス400が返る" do
-        post "/api/v1/users/#{user.id}/recipes", params: invalid_params_no_recipe, headers: headers, as: :json
+        post "/api/v1/users/#{user.id}/recipes", params: invalid_params_no_recipe, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:bad_request)
         expect(response.parsed_body["error"]).to eq("Bad Request")
@@ -222,8 +204,16 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     # バリデーションチェック
     context "パラメータにレシピ名（name）がない場合" do
+      let(:invalid_params_no_name) do
+        {
+          recipe: {
+            notes: "カレー粉はブレンドする"
+          }
+        }
+      end
+
       it "リクエストが失敗し、ステータス422が返る" do
-        post "/api/v1/users/#{user.id}/recipes", params: invalid_params_no_name, headers: headers, as: :json
+        post "/api/v1/users/#{user.id}/recipes", params: invalid_params_no_name, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.parsed_body["error"]).to eq("レシピの作成に失敗しました")
@@ -233,8 +223,18 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     # ストロングパラメータ
     context "許可されていないパラメータ（image）を送った場合" do
+      let(:extra_params) do
+        {
+          recipe: {
+            name: "カレーライス",
+            notes: "カレー粉はブレンドする",
+            image: "不要なデータ"
+          }
+        }
+      end
+
       it "ステータス201は返るが、DBにimageは保存されない" do
-        post "/api/v1/users/#{user.id}/recipes", params: extra_params, headers: headers, as: :json
+        post "/api/v1/users/#{user.id}/recipes", params: extra_params, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:created)
         expect(response.parsed_body["recipe"]).not_to have_key("image")
@@ -266,25 +266,17 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       }
     end
 
-    let(:invalid_params) do
-      {
-        recipe: {
-          name: "",
-          notes: "新しいメモ"
-        }
-      }
-    end
-
     context "有効なユーザーが自分のレシピを更新する場合" do
       it "リクエストが成功し、ステータス200が返る" do
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:ok)
       end
 
       it "DBのレシピデータが更新される" do
         old_updated_at = recipe.updated_at
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
+
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: auth_headers, as: :json
 
         recipe.reload
         expect(recipe.name).to eq("新しいレシピ名")
@@ -293,7 +285,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
 
       it "DBの材料データが更新され、不要な材料は削除される" do
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: auth_headers, as: :json
 
         update_id = params_to_update[:recipe][:ingredients_attributes][0][:id]
         delete_id = params_to_update[:recipe][:ingredients_attributes][1][:id]
@@ -312,7 +304,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
 
       it "DBの動画データが更新される" do
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: params_to_update, headers: auth_headers, as: :json
 
         recipe.video.reload
         expect(recipe.video).to have_attributes(
@@ -325,8 +317,17 @@ RSpec.describe "Api::V1::Recipes", type: :request do
     end
 
     context "レシピ名（name）が空の場合" do
+      let(:invalid_params) do
+        {
+          recipe: {
+            name: "",
+            notes: "新しいメモ"
+          }
+        }
+      end
+
       it "リクエストが失敗し、ステータス422が返る" do
-        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: invalid_params, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{recipe.id}", params: invalid_params, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
         expect(response.parsed_body["error"]).to eq("レシピの更新に失敗しました")
@@ -336,7 +337,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
     context "自分が保有していないレシピを更新しようとした場合" do
       it "リクエストが失敗し、ステータス403が返る" do
-        put "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", params: params_to_update, headers: headers, as: :json
+        put "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", params: params_to_update, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
@@ -351,7 +352,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
 
       it "ステータス200が返り、レシピがDBから物理削除される" do
         expect {
-          delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
+          delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: auth_headers
         }.to change { Recipe.count }.by(-1)
 
         expect(response).to have_http_status(:ok)
@@ -359,8 +360,8 @@ RSpec.describe "Api::V1::Recipes", type: :request do
       end
 
       it "削除後にそのレシピにアクセスするとステータス403が返る" do
-        delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
-        get "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: headers, as: :json
+        delete "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: auth_headers
+        get "/api/v1/users/#{user.id}/recipes/#{recipe_to_delete.id}", headers: auth_headers
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
@@ -370,7 +371,7 @@ RSpec.describe "Api::V1::Recipes", type: :request do
     context "自分が保有していないレシピを削除しようとした場合" do
       it "リクエストが失敗し、ステータス403が返る" do
         expect {
-          delete "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", headers: headers, as: :json
+          delete "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", headers: auth_headers
         }.not_to change { Recipe.count }
 
         expect(response).to have_http_status(:forbidden)

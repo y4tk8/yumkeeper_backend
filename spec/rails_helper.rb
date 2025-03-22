@@ -68,7 +68,7 @@ RSpec.configure do |config|
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
 
-  # FactoryBot のメソッドをRSpec内で使えるように
+  # FactoryBot のメソッドをspecファイルで使えるように
   config.include FactoryBot::Syntax::Methods
 
   # Faker のデフォルト設定を英語にする
