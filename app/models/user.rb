@@ -41,6 +41,11 @@ class User < ActiveRecord::Base
     recipes.destroy_all
   end
 
+  def update_profile_image
+    profile_image.purge if profile_image.attached? # 既存画像を削除
+    profile_image.attach(params[:profile_image]) # 新しいプロフィール画像をアップロード
+  end
+
   # プロフィール画像のURLを取得
   def profile_image_url
     if profile_image.attached?
