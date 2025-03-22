@@ -15,12 +15,9 @@ module Api
       end
 
       def update
-        if params[:profile_image].present?
-          @user.profile_image.purge if @user.profile_image.attached? # 既存画像を削除
-          @user.profile_image.attach(params[:profile_image]) # 新しい画像をアップロード
-        end
-
         if @user.update(user_params)
+          update_profile_image if params[:profile_image].present?
+
           render json: {
             message: "プロフィールを更新しました",
             user: {
