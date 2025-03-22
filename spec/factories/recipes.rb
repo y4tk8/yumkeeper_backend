@@ -5,13 +5,13 @@ FactoryBot.define do
     association :user
   end
 
-  trait :add_ingredients do
+  trait :with_ingredients do
     after(:create) do |recipe|
       create_list(:ingredient, 3, recipe: recipe)
     end
   end
 
-  trait :add_video do
+  trait :with_video do
     after(:create) do |recipe|
       create(:video, recipe: recipe)
     end
