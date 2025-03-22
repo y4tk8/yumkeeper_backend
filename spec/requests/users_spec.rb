@@ -25,7 +25,7 @@ RSpec.describe "Api::V1::Users", type: :request do
 
     context "別のユーザーのプロフィールを取得しようとした場合" do
       it "プロフィール取得に失敗し、ステータス403が返る" do
-        get "/api/v1/users/#{other_user.id}", headers: auth_headers, as: :json
+        get "/api/v1/users/#{other_user.id}", headers: auth_headers
 
         expect(response).to have_http_status(:forbidden)
         expect(response.parsed_body["error"]).to eq("アクセス権限がありません。")
@@ -34,7 +34,7 @@ RSpec.describe "Api::V1::Users", type: :request do
 
     context "無効なユーザー（未認証ユーザー）の場合" do
       it "認証に失敗し、ステータス401が返る" do
-        get "/api/v1/users/#{user.id}", as: :json # 認証ヘッダーなし
+        get "/api/v1/users/#{user.id}"# 認証ヘッダーなし
 
         expect(response).to have_http_status(:unauthorized)
         expect(response.parsed_body["errors"]).to include("ログインもしくはアカウント登録してください。")
@@ -44,24 +44,18 @@ RSpec.describe "Api::V1::Users", type: :request do
 
   # プロフィール情報を更新（update）
   describe "PUT /api/v1/users/:id" do
-    let(:file) { fixture_file_upload(Rails.root.join("spec/fixtures/profile_image.webp"), "image/webp") }
-    let(:valid_params) do
-      {
-        user: {
-          username: "新しいユーザー名",
-          profile_image: file
-        }
-      }
-    end
-
-    let(:invalid_params_no_user) do
-      {
-        username: "新しいユーザー名",
-        profile_image: file
-      }
-    end
+    let(:file) { fixture_file_upload(Rails.root.join("spec/fixtures/profile_image.webp"), "image/webp") } # テスト用プロフィール画像
 
     context "有効なユーザーが自分のプロフィールを更新する場合" do
+      let(:valid_params) do
+        {
+          user: {
+            username: "新しいユーザー名",
+            profile_image: file
+          }
+        }
+      end
+
       before do
         put "/api/v1/users/#{user.id}", params: valid_params, headers: auth_headers, as: :json
       end
@@ -87,6 +81,13 @@ RSpec.describe "Api::V1::Users", type: :request do
 
     # ストロングパラメータ
     context "パラメータにuserキーがない場合" do
+      let(:invalid_params_no_user) do
+        {
+          username: "新しいユーザー名",
+          profile_image: file
+        }
+      end
+
       it "リクエストが失敗し、ステータス400が返る" do
         put "/api/v1/users/#{user.id}", params: invalid_params_no_user, headers: auth_headers, as: :json
 
@@ -100,7 +101,7 @@ RSpec.describe "Api::V1::Users", type: :request do
   describe "DELETE /api/v1/users/:id/delete_profile_image" do
     context "プロフィール画像がアップロード済みの場合" do
       it "プロフィール画像が削除され、ステータス200が返る" do
-        delete "/api/v1/users/#{user.id}/delete_profile_image", headers: auth_headers, as: :json
+        delete "/api/v1/users/#{user.id}/delete_profile_image", headers: auth_headers
 
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body["message"]).to include("プロフィール画像を削除しました")
@@ -110,10 +111,10 @@ RSpec.describe "Api::V1::Users", type: :request do
     end
 
     context "プロフィール画像がアップロードされていない場合" do
-      let!(:user) { create(:user, :confirmed) } # プロフィール画像が紐付いていないユーザー
+      let!(:user) { create(:user, :confirmed) } # プロフィール画像をアップロードしていないユーザー
 
       it "リクエストが失敗し、ステータス404が返る" do
-        delete "/api/v1/users/#{user.id}/delete_profile_image", headers: auth_headers, as: :json
+        delete "/api/v1/users/#{user.id}/delete_profile_image", headers: auth_headers
 
         expect(response).to have_http_status(:not_found)
         expect(response.parsed_body["error"]).to include("プロフィール画像が設定されていません")

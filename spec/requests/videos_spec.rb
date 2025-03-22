@@ -6,38 +6,24 @@ RSpec.describe "Api::V1::Videos", type: :request do
   let(:video) { create(:video, recipe: recipe) }
   let(:auth_headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
-  let(:valid_params) do
-    {
-      video: {
-        etag: "new_etag_456",
-        status: "private",
-        is_embeddable: "false",
-        is_deleted: "true",
-        cached_at: Time.current
-      }
-    }
-  end
-
-  let(:invalid_params_no_value) do
-    {
-      video: {
-        etag: nil,
-        status: nil
-      }
-    }
-  end
-
-  let(:invalid_params_no_video) do
-    {
-      etag: "new_etag_456",
-      status: "private"
-    }
-  end
-
   # 動画を更新（update）
   describe "PUT /api/v1/videos/:id" do
+    let(:valid_params) do
+      {
+        video: {
+          etag: "new_etag_456",
+          status: "private",
+          is_embeddable: "false",
+          is_deleted: "true",
+          cached_at: Time.current
+        }
+      }
+    end
+
     context "リクエストが正常な場合" do
-      before { put "/api/v1/videos/#{video.id}", params: valid_params, headers: auth_headers, as: :json }
+      before do
+        put "/api/v1/videos/#{video.id}", params: valid_params, headers: auth_headers, as: :json
+      end
 
       it "リクエストが成功し、ステータス200が返る" do
         expect(response).to have_http_status(:ok)
@@ -48,8 +34,8 @@ RSpec.describe "Api::V1::Videos", type: :request do
         video.reload
         expect(video.etag).to eq("new_etag_456")
         expect(video.status).to eq("private")
-        expect(video.is_embeddable).to be_falsey
-        expect(video.is_deleted).to be_truthy
+        expect(video.is_embeddable).to be false
+        expect(video.is_deleted).to be true
       end
     end
 
@@ -76,6 +62,13 @@ RSpec.describe "Api::V1::Videos", type: :request do
 
     # ストロングパラメータ
     context "パラメータにvideoキーがない場合" do
+      let(:invalid_params_no_video) do
+        {
+          etag: "new_etag_456",
+          status: "private"
+        }
+      end
+
       it "リクエストが失敗し、ステータス400が返る" do
         put "/api/v1/videos/#{video.id}", params: invalid_params_no_video, headers: auth_headers, as: :json
 
