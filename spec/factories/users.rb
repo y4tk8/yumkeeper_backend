@@ -26,5 +26,12 @@ FactoryBot.define do
         )
       end
     end
+
+    # ゲストユーザー
+    trait :guest do
+      email { "guest_#{SecureRandom.hex(6)}@example.com" }
+      confirmed_at { Time.current }
+      role { "ゲスト" }
+    end
   end
 end
