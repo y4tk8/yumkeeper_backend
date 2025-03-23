@@ -16,6 +16,10 @@ Rails.application.routes.draw do
       end
 
       resources :videos, only: [:update]
+
+      namespace :auth do
+        resource :guest_user, only: [:create, :destroy]
+      end
     end
   end
 
