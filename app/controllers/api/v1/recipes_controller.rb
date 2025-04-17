@@ -6,7 +6,17 @@ module Api
       before_action :set_recipe, only: [:show, :update, :destroy]
 
       def index
-        recipes = @user.recipes.includes(:video).order(updated_at: :desc)
+        # 並び替えの条件をパラメータによって決定
+        sort_column, sort_direction = case params[:sort]
+        when "created_desc"
+          [:created_at, :desc]
+        when "created_asc"
+          [:created_at, :asc]
+        else
+          [:updated_at, :desc] # デフォルト（最新の更新順）
+        end
+
+        recipes = @user.recipes.includes(:video).order(sort_column => sort_direction)
 
         # ページネーション情報 と 現在のページのレシピデータ（配列）を分割代入
         pagy, recipes = pagy(recipes)
