@@ -34,7 +34,7 @@ RSpec.describe "POST /api/v1/users/:user_id/recipes", type: :request do
       }.to change(Recipe, :count).by(1)
 
       expect(response).to have_http_status(:created)
-      expect(response.parsed_body["message"]).to eq("レシピが作成されました")
+      expect(response.parsed_body["message"]).to eq("レシピが追加されました")
       expect(response.parsed_body["recipe"]["name"]).to eq("カレーライス")
       expect(response.parsed_body["recipe"]["notes"]).to eq("カレー粉はブレンドする")
     end
@@ -99,7 +99,7 @@ RSpec.describe "POST /api/v1/users/:user_id/recipes", type: :request do
       post "/api/v1/users/#{user.id}/recipes", params: invalid_params_no_name, headers: auth_headers, as: :json
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(response.parsed_body["error"]).to eq("レシピの作成に失敗しました")
+      expect(response.parsed_body["error"]).to eq("レシピの追加に失敗しました")
       expect(response.parsed_body["details"]).to include("レシピ名を入力してください")
     end
   end

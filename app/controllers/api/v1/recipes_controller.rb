@@ -54,7 +54,7 @@ module Api
 
         if recipe.save
           render json: {
-            message: "レシピが作成されました",
+            message: "レシピが追加されました",
             recipe: recipe.as_json(
               include: {
                 ingredients: { only: [:id, :name, :quantity, :unit, :category] },
@@ -63,7 +63,7 @@ module Api
             )
           }, status: :created
         else
-          render json: { error: "レシピの作成に失敗しました", details: recipe.errors.messages[:name] }, status: :unprocessable_entity
+          render json: { error: "レシピの追加に失敗しました", details: recipe.errors.messages[:name] }, status: :unprocessable_entity
         end
       end
 
@@ -101,7 +101,7 @@ module Api
         if current_api_v1_user == param_user
           @user = param_user
         else
-          render json: { error: "アクセス権限がありません。" }, status: :forbidden
+          render json: { error: "アクセス権限がありません" }, status: :forbidden
         end
       end
 
@@ -110,7 +110,7 @@ module Api
         @recipe = @user.recipes.find_by(id: params[:id])
 
         unless @recipe
-          render json: { error: "レシピが見つかりません。" }, status: :forbidden
+          render json: { error: "レシピが見つかりません" }, status: :forbidden
         end
       end
 

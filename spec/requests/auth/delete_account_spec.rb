@@ -7,11 +7,11 @@ RSpec.describe "Delete User Account", type: :request do
     let(:auth_headers) { user.create_new_auth_token } # Devise Token Authの認証情報
 
     context "認証情報が正しい場合" do
-      it "退会処理が成功し、ステータス200が返る" do
+      it "退会が成功し、ステータス200が返る" do
         delete "/api/v1/auth", headers: auth_headers
 
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["message"]).to include("退会処理が正常に完了しました。")
+        expect(response.parsed_body["message"]).to include("退会が正常に完了しました")
       end
 
       it "ユーザーのアカウントが論理削除される" do
@@ -29,14 +29,14 @@ RSpec.describe "Delete User Account", type: :request do
     end
 
     context "認証情報がない、または間違っている場合" do
-      it "退会処理に失敗し、ステータス404が返る（認証情報がない）" do
+      it "退会に失敗し、ステータス404が返る（認証情報がない）" do
         delete "/api/v1/auth"
 
         expect(response).to have_http_status(:not_found)
-        expect(response.parsed_body["error"]).to include("ユーザーが見つかりません。")
+        expect(response.parsed_body["error"]).to include("ユーザーが見つかりません")
       end
 
-      it "退会処理に失敗し、ステータス404が返る（認証情報が間違っている）" do
+      it "退会に失敗し、ステータス404が返る（認証情報が間違っている）" do
         invalid_headers = {
           "access-token" => "invalid_token",
           "client" => "invalid_client",
@@ -46,7 +46,7 @@ RSpec.describe "Delete User Account", type: :request do
         delete "/api/v1/auth", headers: invalid_headers
 
         expect(response).to have_http_status(:not_found)
-        expect(response.parsed_body["error"]).to include("ユーザーが見つかりません。")
+        expect(response.parsed_body["error"]).to include("ユーザーが見つかりません")
       end
     end
 
@@ -63,11 +63,11 @@ RSpec.describe "Delete User Account", type: :request do
         expect { delete "/api/v1/auth", headers: auth_headers }.not_to change { Recipe.count }
       end
 
-      it "退会処理に失敗し、ステータス500が返る" do
+      it "退会に失敗し、ステータス500が返る" do
         delete "/api/v1/auth", headers: auth_headers
 
         expect(response).to have_http_status(:internal_server_error)
-        expect(response.parsed_body["error"]).to include("退会処理に失敗しました。")
+        expect(response.parsed_body["error"]).to include("退会に失敗しました")
       end
     end
   end
