@@ -11,7 +11,7 @@ users.each_with_index do |user, index|
   # 各レシピに3つの材料 or 調味料と1つの動画を紐付ける
   recipes.each do |recipe|
     3.times { FactoryBot.create(:ingredient, recipe: recipe) }
-    FactoryBot.create(:video, recipe: recipe)
+    FactoryBot.create(:video, thumbnail_url: "", recipe: recipe) # thumbnail_urlは空文字 -> フロントでデフォルト画像を表示する
   end
 end
 
