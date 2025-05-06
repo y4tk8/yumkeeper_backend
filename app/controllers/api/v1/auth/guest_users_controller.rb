@@ -22,7 +22,7 @@ module Api
           )
 
           render json: {
-            message: "ゲストとしてログインしました",
+            message: "ゲストログインしました",
             user: guest_user,
             token: guest_user.create_new_auth_token
           }, status: :ok
@@ -32,7 +32,7 @@ module Api
         def destroy
           if current_api_v1_user&.role == "ゲスト"
             current_api_v1_user.destroy!
-            render json: { message: "ゲストユーザーからログアウトしました" }, status: :ok
+            render json: { message: "ゲストからログアウトしました" }, status: :ok
           end
         end
 

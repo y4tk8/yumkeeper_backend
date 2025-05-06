@@ -20,14 +20,14 @@ module Api
         @video = Video.find_by(id: params[:id])
 
         unless @video
-          render json: { error: "動画が見つかりません。" }, status: :not_found
+          render json: { error: "動画が見つかりません" }, status: :not_found
         end
       end
 
       # サインインユーザーと動画保持ユーザーが同一か検証する
       def authorize_user
         unless current_api_v1_user == @video.recipe.user
-          render json: { error: "アクセス権限がありません。" }, status: :forbidden
+          render json: { error: "アクセス権限がありません" }, status: :forbidden
         end
       end
 

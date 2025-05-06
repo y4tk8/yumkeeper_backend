@@ -50,7 +50,7 @@ module Api
         if current_api_v1_user == param_user
           @user = param_user
         else
-          render json: { error: "アクセス権限がありません。" }, status: :forbidden
+          render json: { error: "アクセス権限がありません" }, status: :forbidden
         end
       end
 

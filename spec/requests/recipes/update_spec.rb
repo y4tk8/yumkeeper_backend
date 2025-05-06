@@ -104,7 +104,7 @@ RSpec.describe "PUT /api/v1/users/:user_id/recipes/:id", type: :request do
       put "/api/v1/users/#{user.id}/recipes/#{other_recipe.id}", params: params_to_update, headers: auth_headers, as: :json
 
       expect(response).to have_http_status(:forbidden)
-      expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
+      expect(response.parsed_body["error"]).to eq("レシピが見つかりません")
     end
   end
 end

@@ -21,7 +21,7 @@ RSpec.describe "DELETE /api/v1/users/:user_id/recipes/:id", type: :request do
       get "/api/v1/users/#{user.id}/recipes/#{recipe.id}", headers: auth_headers
 
       expect(response).to have_http_status(:forbidden)
-      expect(response.parsed_body["error"]).to eq("レシピが見つかりません。")
+      expect(response.parsed_body["error"]).to eq("レシピが見つかりません")
     end
   end
 

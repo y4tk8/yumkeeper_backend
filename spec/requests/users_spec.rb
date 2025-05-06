@@ -28,7 +28,7 @@ RSpec.describe "Api::V1::Users", type: :request do
         get "/api/v1/users/#{other_user.id}", headers: auth_headers
 
         expect(response).to have_http_status(:forbidden)
-        expect(response.parsed_body["error"]).to eq("アクセス権限がありません。")
+        expect(response.parsed_body["error"]).to eq("アクセス権限がありません")
       end
     end
 

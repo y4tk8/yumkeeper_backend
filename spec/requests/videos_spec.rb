@@ -47,7 +47,7 @@ RSpec.describe "Api::V1::Videos", type: :request do
         put "/api/v1/videos/#{video.id}", params: valid_params, headers: other_auth_headers, as: :json
 
         expect(response).to have_http_status(:forbidden)
-        expect(response.parsed_body["error"]).to eq("アクセス権限がありません。")
+        expect(response.parsed_body["error"]).to eq("アクセス権限がありません")
       end
     end
 
@@ -56,7 +56,7 @@ RSpec.describe "Api::V1::Videos", type: :request do
         put "/api/v1/videos/9999", params: valid_params, headers: auth_headers, as: :json
 
         expect(response).to have_http_status(:not_found)
-        expect(response.parsed_body["error"]).to eq("動画が見つかりません。")
+        expect(response.parsed_body["error"]).to eq("動画が見つかりません")
       end
     end
 
