@@ -21,11 +21,11 @@ module Api
             role: "ゲスト"
           )
 
-          render json: {
-            message: "ゲストログインしました",
-            user: guest_user,
-            token: guest_user.create_new_auth_token
-          }, status: :ok
+          # Devise Token Authのトークン発行 & ヘッダーに付与
+          token = guest_user.create_new_auth_token
+          response.headers.merge!(token)
+
+          render json: { message: "ゲストとしてログインしました", user: guest_user }, status: :ok
         end
 
         # ゲストサインアウト処理
