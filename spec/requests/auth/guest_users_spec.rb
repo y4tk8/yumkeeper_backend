@@ -11,9 +11,11 @@ RSpec.describe "Guest User", type: :request do
       end
 
       it "ゲストユーザー情報と認証トークンが返る" do
-        expect(response.parsed_body["message"]).to include("ゲストログインしました")
+        expect(response.parsed_body["message"]).to include("ゲストとしてログインしました")
         expect(response.parsed_body["user"]["role"]).to eq("ゲスト")
-        expect(response.parsed_body["token"]).to be_present
+        expect(response.headers["access-token"]).to be_present
+        expect(response.headers["client"]).to be_present
+        expect(response.headers["uid"]).to be_present
       end
     end
 
