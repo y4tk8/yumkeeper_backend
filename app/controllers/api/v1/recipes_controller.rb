@@ -69,6 +69,8 @@ module Api
 
       def update
         if @recipe.update(recipe_params)
+          @recipe.touch
+
           render json: {
             message: "レシピが更新されました",
             recipe: @recipe.as_json(

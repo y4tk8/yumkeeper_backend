@@ -1,5 +1,5 @@
 class Ingredient < ApplicationRecord
-  belongs_to :recipe
+  belongs_to :recipe, touch: true
 
   # decimal型の quantity を整数で返せるようオーバーライド
   def serializable_hash(options = {})
