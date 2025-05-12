@@ -31,11 +31,6 @@ class User < ActiveRecord::Base
     super && !is_deleted
   end
 
-  # 認証エラー時のDeviseデフォルトメッセージをオーバーライド
-  def inactive_message
-    is_deleted ? "退会済みのユーザーです。" : super
-  end
-
   # NOTE: ユーザー論理削除の際に呼び出す
   def delete_recipes
     recipes.destroy_all

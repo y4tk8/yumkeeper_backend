@@ -20,14 +20,14 @@ RSpec.describe "User Sign-In", type: :request do
         post "/api/v1/auth/sign_in", params: { email: "wrong_email@example.com", password: user.password }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["errors"]).to include("ログイン用の認証情報が正しくありません。再度お試しください。")
+        expect(response.parsed_body["errors"]).to include("メールアドレスまたはパスワードが正しくありません")
       end
 
       it "サインインに失敗し、ステータス401が返る（誤ったパスワード）" do
         post "/api/v1/auth/sign_in", params: { email: user.email, password: "wrong_password" }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["errors"]).to include("ログイン用の認証情報が正しくありません。再度お試しください。")
+        expect(response.parsed_body["errors"]).to include("メールアドレスまたはパスワードが正しくありません")
       end
     end
 
@@ -38,7 +38,7 @@ RSpec.describe "User Sign-In", type: :request do
         post "/api/v1/auth/sign_in", params: { email: unconfirmed_user.email, password: unconfirmed_user.password }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["errors"]).to include("ログイン用の認証情報が正しくありません。再度お試しください。")
+        expect(response.parsed_body["errors"]).to include("メールアドレスまたはパスワードが正しくありません")
       end
     end
 
@@ -49,7 +49,7 @@ RSpec.describe "User Sign-In", type: :request do
         post "/api/v1/auth/sign_in", params: { email: deleted_user.email, password: deleted_user.password }, as: :json
 
         expect(response).to have_http_status(:unauthorized)
-        expect(response.parsed_body["errors"]).to include("ログイン用の認証情報が正しくありません。再度お試しください。")
+        expect(response.parsed_body["errors"]).to include("メールアドレスまたはパスワードが正しくありません")
       end
     end
   end
