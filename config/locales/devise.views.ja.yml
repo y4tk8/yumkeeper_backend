@@ -37,8 +37,8 @@ ja:
               taken: 入力したメールアドレスはすでに存在します
             password:
               blank: パスワードを入力してください
-              too_short: パスワードは英字と数字を含んだ8文字以上にしてください
-              invalid: パスワードは英字と数字を含んだ8文字以上にしてください
+              too_short: パスワードは8文字以上で入力してください
+              invalid: パスワードは英字と数字を含んでください
             password_confirmation:
               confirmation: 入力したパスワードが一致しません
       messages:

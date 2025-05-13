@@ -46,7 +46,7 @@ RSpec.describe "User Sign-Up", type: :request do
         post "/api/v1/auth", params: { email: "test@example.com", password: "Pass1", password_confirmation: "Pass1" }, as: :json
 
         expect(response).to have_http_status(:unprocessable_entity)
-        expect(response.parsed_body["errors"]["password"]).to include("パスワードは英字と数字を含んだ8文字以上にしてください")
+        expect(response.parsed_body["errors"]["password"]).to include("パスワードは8文字以上で入力してください")
       end
 
       it "エラーメッセージと共に、ステータス422が返る（確認用パスワードと不一致）" do
