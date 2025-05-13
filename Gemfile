@@ -47,7 +47,6 @@ group :development, :test do
   gem "rspec-rails", "~> 7.1.0"
   gem "factory_bot_rails"
   gem "faker"
-  gem "capybara"
 
   # Make sent emails viewable via a web UI in the development environment
   gem "letter_opener_web", "~> 3.0"
