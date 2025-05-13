@@ -52,14 +52,14 @@ RSpec.describe User, type: :model do
         user.password = "a1"
         user.password_confirmation = "a1"
         expect(user).not_to be_valid
-        expect(user.errors[:password]).to include("パスワードは英字と数字を含んだ8文字以上にしてください")
+        expect(user.errors[:password]).to include("パスワードは8文字以上で入力してください")
       end
 
       it "パスワードが英字・数字どちらも含んでいないと無効" do
         user.password = "password"
         user.password_confirmation = "password"
         expect(user).not_to be_valid
-        expect(user.errors[:password]).to include("パスワードは英字と数字を含んだ8文字以上にしてください")
+        expect(user.errors[:password]).to include("パスワードは英字と数字を含んでください")
       end
 
       it "パスワードと確認用パスワードが一致しないと無効" do
