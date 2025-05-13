@@ -71,7 +71,6 @@ jobs:
       - name: Install packages
         run: |
           sudo apt-get update && sudo apt-get install --no-install-recommends -y \
-          chromium-browser \
           curl \
           libjemalloc2 \
           libvips \
