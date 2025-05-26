@@ -23,6 +23,16 @@ Rails.application.routes.draw do
     end
   end
 
-  # 開発環境で送信したメールをブラウザから一覧するためのパス
+  if Rails.env.development? || Rails.env.test?
+    namespace :test_support do
+      namespace :api do
+        namespace :v1 do
+          put "/test_user_confirm", to: "test_user_confirmations#update"
+        end
+      end
+    end
+  end
+
+  # 開発環境からの送信メールをブラウザで一覧するためのパス
   mount LetterOpenerWeb::Engine, at: "/letter_opener" if Rails.env.development?
 end
