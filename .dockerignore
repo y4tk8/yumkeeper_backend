@@ -41,3 +41,6 @@
 # Ignore Docker-related files
 /.dockerignore
 /Dockerfile*
+/docker-compose*
+
+README.md
