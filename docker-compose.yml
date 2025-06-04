@@ -38,9 +38,9 @@ services:
     env_file: .env
     environment:
       USE_REVERSE_PROXY: true
-      RAILS_ENV: development
-    # 本番用
-    # RAILS_ENV: production
+      # NOTE: 開発 or 本番 かでコメントアウト / アンコメントを切り替え。期限重視のため環境ごとにComposeファイルは分離しない。
+      # RAILS_ENV: development
+      RAILS_ENV: production
     ports:
       - 3010:3000
     networks:
