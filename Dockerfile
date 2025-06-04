@@ -31,7 +31,7 @@ RUN apk update && apk add --no-cache \
     tzdata
 
 WORKDIR /app
-COPY --from=builder /app/ /app/
+COPY --from=builder /app /app
 COPY --from=builder /usr/local/bundle /usr/local/bundle
 
 COPY entrypoint.sh /usr/bin/
