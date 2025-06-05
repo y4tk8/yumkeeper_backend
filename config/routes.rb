@@ -23,6 +23,10 @@ Rails.application.routes.draw do
     end
   end
 
+  # ヘルスチェック用
+  get "/healthcheck", to: proc { [200, {}, ["OK"]] }
+
+  # ユーザーを簡便に'認証済み'可能に（主にテスト利用）
   if Rails.env.development? || Rails.env.test?
     namespace :test_support do
       namespace :api do

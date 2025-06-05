@@ -17,17 +17,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test:
-        [
-          "CMD",
-          "pg_isready",
-          "-U",
-          "${POSTGRES_USER}",
-          "-d",
-          "${DB_NAME}",
-          "-h",
-          "localhost"
-        ]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${DB_NAME}", "-h", "localhost"]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -53,6 +43,11 @@ services:
       db:
         condition: service_healthy
         restart: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/healthcheck"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
 
   # Nginxコンテナ
   web:
@@ -68,7 +63,8 @@ services:
       - public_data:/app/public
       - tmp_data:/app/tmp
     depends_on:
-      - api
+      api:
+        condition: service_healthy # ECSでのデプロイ安定化が目的
 
 # フロントエンドとの共有ネットワーク
 networks:
