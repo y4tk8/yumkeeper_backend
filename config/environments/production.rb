@@ -67,6 +67,19 @@ Rails.application.configure do
   # config.active_job.queue_adapter = :resque
   # config.active_job.queue_name_prefix = "app_production"
 
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address:              "smtp.mailgun.org",
+    port:                 587,
+    domain:               "mg.yumkeeper.net",
+    user_name:            ENV["MAILGUN_SMTP_LOGIN"],
+    password:             ENV["MAILGUN_SMTP_PASSWORD"],
+    authentication:       "plain",
+    enable_starttls_auto: true
+  }
+
+  config.action_mailer.default_url_options = { host: "https://yumkeeper.net" }
+
   # Disable caching for Action Mailer templates even if Action Controller
   # caching is enabled.
   config.action_mailer.perform_caching = false
