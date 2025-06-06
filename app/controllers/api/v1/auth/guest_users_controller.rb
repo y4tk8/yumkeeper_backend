@@ -25,14 +25,17 @@ module Api
           token = guest_user.create_new_auth_token
           response.headers.merge!(token)
 
-          render json: { message: "ゲストとしてログインしました", user: guest_user }, status: :ok
+          render json: { message: "ログインしました", user: guest_user }, status: :ok
+        rescue => e
+          Rails.logger.error "[GuestSigninError] #{e.class}: #{e.message}\n#{e.backtrace.take(10).join("\n")}"
+          render json: { error: "ログインに失敗しました", user: guest_user }, status: :internal_server_error
         end
 
         # ゲストサインアウト処理
         def destroy
           if current_api_v1_user&.role == "ゲスト"
             current_api_v1_user.destroy!
-            render json: { message: "ゲストからログアウトしました" }, status: :ok
+            render json: { message: "ログアウトしました" }, status: :ok
           end
         end
 
