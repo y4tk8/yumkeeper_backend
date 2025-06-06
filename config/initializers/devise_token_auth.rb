@@ -64,14 +64,12 @@ DeviseTokenAuth.setup do |config|
   # send email, set it to true. (This is a setting for compatibility)
   config.send_confirmation_email = true
 
-  # メールアドレス認証後のリダイレクトURL
-  # NOTE: URLは後で適切にする
-  config.default_confirm_success_url = "http://localhost:3000"
+  # アカウント認証リンク押下時のリダイレクトURL
+  config.default_confirm_success_url = ENV.fetch("DEFAULT_CONFIRM_SUCCESS_URL", "http://localhost:3000")
 
-  # ユーザー認証情報の代わりにパスワードリセットトークンをリダイレクト先URLに含める
+  # パスワードリセットリンク押下時のリダイレクトURL
+  config.default_password_reset_url = ENV.fetch("DEFAULT_PASSWORD_RESET_URL", "http://localhost:3000/password-reset")
+
+  # パスワードリセットトークンをリダイレクト先URLに含める
   config.require_client_password_reset_token = true
-
-  # パスワードリセットリンク押下後のリダイレクトURL
-  # NOTE: URLは後で適切にする
-  config.default_password_reset_url = "http://localhost:3000/password-reset"
 end
