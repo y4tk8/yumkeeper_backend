@@ -4,11 +4,12 @@
 
 <p>以下のリンクを押して、本登録を完了してください。</p><br>
 
+<% confirmation_link = "#{ENV.fetch("DEFAULT_CONFIRM_SUCCESS_URL", "http://localhost:3000")}?account_confirmation_success=true" %>
+
 <p>
   <%= link_to "アカウントを認証する", confirmation_url(@resource, {
     confirmation_token: @token,
-    config: message['client-config'].to_s,
-    redirect_url: message['redirect-url']
+    redirect_url: confirmation_link
   }).html_safe %>
 </p>
 
