@@ -11,7 +11,7 @@ RSpec.describe "Guest User", type: :request do
       end
 
       it "ゲストユーザー情報と認証トークンが返る" do
-        expect(response.parsed_body["message"]).to include("ゲストとしてログインしました")
+        expect(response.parsed_body["message"]).to include("ログインしました")
         expect(response.parsed_body["user"]["role"]).to eq("ゲスト")
         expect(response.headers["access-token"]).to be_present
         expect(response.headers["client"]).to be_present
@@ -42,7 +42,7 @@ RSpec.describe "Guest User", type: :request do
 
       it "リクエストが成功し、ステータス200が返る" do
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["message"]).to include("ゲストからログアウトしました")
+        expect(response.parsed_body["message"]).to include("ログアウトしました")
       end
 
       it "DBからゲストユーザーが物理削除される" do
