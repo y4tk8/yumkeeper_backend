@@ -1,16 +1,16 @@
+# 自作URL（Deviseが生成するURLではNext.jsにリダイレクトされず404になる）
+<% raw_confirmation_url =
+  "#{ENV.fetch("API_BASE_URL")}/api/v1/auth/confirmation?confirmation_token=#{@token}" +
+  "&redirect_url=#{CGI.escape(ENV.fetch("DEFAULT_CONFIRM_SUCCESS_URL") + "?account_confirmation_success=true")}" %>
+
 <p><%= @email %> さん、</p>
 
 <p>アカウント登録ありがとうございます！</p>
 
 <p>以下のリンクを押して、本登録を完了してください。</p><br>
 
-<% confirmation_link = "#{ENV.fetch("DEFAULT_CONFIRM_SUCCESS_URL", "http://localhost:3000")}?account_confirmation_success=true" %>
-
 <p>
-  <%= link_to "アカウントを認証する", confirmation_url(@resource, {
-    confirmation_token: @token,
-    redirect_url: confirmation_link
-  }).html_safe %>
+  <%= link_to "アカウントを認証する", raw_confirmation_url %>
 </p>
 
 <p>リンクの有効期間は3日間です。お早めにご対応ください。</p><br>
