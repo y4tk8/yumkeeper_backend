@@ -72,4 +72,6 @@ DeviseTokenAuth.setup do |config|
 
   # パスワードリセットトークンをリダイレクト先URLに含める
   config.require_client_password_reset_token = true
+
+  Rails.application.routes.default_url_options[:host] = ENV.fetch("API_BASE_URL", "http://localhost:3000")
 end
