@@ -65,13 +65,13 @@ DeviseTokenAuth.setup do |config|
   config.send_confirmation_email = true
 
   # アカウント認証リンク押下時のリダイレクトURL
-  config.default_confirm_success_url = ENV.fetch("DEFAULT_CONFIRM_SUCCESS_URL", "http://localhost:3000")
+  config.default_confirm_success_url = ENV["DEFAULT_CONFIRM_SUCCESS_URL"] || "http://localhost:3000"
 
   # パスワードリセットリンク押下時のリダイレクトURL
-  config.default_password_reset_url = ENV.fetch("DEFAULT_PASSWORD_RESET_URL", "http://localhost:3000/password-reset")
+  config.default_password_reset_url = ENV["DEFAULT_PASSWORD_RESET_URL"] || "http://localhost:3000/password-reset"
 
   # パスワードリセットトークンをリダイレクト先URLに含める
   config.require_client_password_reset_token = true
 
-  Rails.application.routes.default_url_options[:host] = ENV.fetch("API_BASE_URL", "http://localhost:3000")
+  Rails.application.routes.default_url_options[:host] = ENV["API_BASE_URL"] || "http://localhost:8080"
 end
