@@ -43,11 +43,6 @@ services:
       db:
         condition: service_healthy
         restart: true
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/healthcheck"]
-      interval: 10s
-      timeout: 10s
-      retries: 3
 
   # Nginxコンテナ
   web:
@@ -63,8 +58,7 @@ services:
       - public_data:/app/public
       - tmp_data:/app/tmp
     depends_on:
-      api:
-        condition: service_healthy # ECSでのデプロイ安定化が目的
+      - api
 
 # フロントエンドとの共有ネットワーク
 networks:

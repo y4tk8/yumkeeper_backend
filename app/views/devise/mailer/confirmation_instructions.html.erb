@@ -1,4 +1,3 @@
-# 自作URL（Deviseが生成するURLではNext.jsにリダイレクトされず404になる）
 <% raw_confirmation_url =
   "#{ENV["API_BASE_URL"] || "http://localhost:8080"}/api/v1/auth/confirmation?confirmation_token=#{@token}" +
   "&redirect_url=#{CGI.escape((ENV["DEFAULT_CONFIRM_SUCCESS_URL"] || "http://localhost:3000") + "?account_confirmation_success=true")}" %>
