@@ -7,7 +7,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins "http://localhost:3000", "https://www.yumkeeper.net"
+    origins "http://localhost:3000", "https://www.yumkeeper.net", "https://api.yumkeeper.net"
 
     resource "*",
       headers: :any,
