@@ -29,6 +29,9 @@ bind_address = ENV["RAILS_ENV"] == "production" || ENV["USE_REVERSE_PROXY"] == "
   "tcp://0.0.0.0:3000"
 bind bind_address
 
-# 標準出力と標準エラー出力を各ファイルへリダイレクト
-# 文末のtrueにて既存ログファイルを追記モードで開ける
-stdout_redirect "#{app_root}/log/puma.stdout.log", "#{app_root}/log/puma.stderr.log", true
+# ログ出力
+if ENV.fetch("RAILS_ENV", "development") == "production"
+  stdout_redirect(nil, nil, true) # 本番: STDOUTへ -> CloudWatch に流す
+else
+  stdout_redirect "#{app_root}/log/puma.stdout.log", "#{app_root}/log/puma.stderr.log", true # 開発: ログファイルへ出力
+end
