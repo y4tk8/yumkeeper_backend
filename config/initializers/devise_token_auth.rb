@@ -64,14 +64,23 @@ DeviseTokenAuth.setup do |config|
   # send email, set it to true. (This is a setting for compatibility)
   config.send_confirmation_email = true
 
-  # アカウント認証リンク押下時のリダイレクトURL
-  config.default_confirm_success_url = ENV["DEFAULT_CONFIRM_SUCCESS_URL"] || "http://localhost:3000"
-
-  # パスワードリセットリンク押下時のリダイレクトURL
-  config.default_password_reset_url = ENV["DEFAULT_PASSWORD_RESET_URL"] || "http://localhost:3000/password-reset"
-
-  # パスワードリセットトークンをリダイレクト先URLに含める
+  # パスワードリセットトークンをリダイレクトURLに含める
   config.require_client_password_reset_token = true
 
-  Rails.application.routes.default_url_options[:host] = ENV["API_BASE_URL"] || "http://localhost:8080"
+  # アカウント認証 / パスワードリセット の環境ごとのリダイレクトURL
+  confirm_success_url, password_reset_url =
+    case Rails.env
+    when "production"
+      ["https://www.yumkeeper.net", "https://www.yumkeeper.net/password-reset"]
+    when "test"
+      ["http://frontend.example.com", "http://frontend.example.com/password-reset"]
+    else
+      ["http://localhost:3000", "http://localhost:3000/password-reset"]
+    end
+
+  config.default_confirm_success_url = confirm_success_url
+  config.default_password_reset_url = password_reset_url
+
+  # リダイレクトURLの許可リスト
+  config.redirect_whitelist = [confirm_success_url, password_reset_url]
 end
