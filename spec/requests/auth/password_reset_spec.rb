@@ -7,7 +7,7 @@ RSpec.describe "Password Reset", type: :request do
   describe "POST /api/v1/auth/password" do
     context "メールアドレスが登録済みの場合" do
       before do
-        post "/api/v1/auth/password", params: { email: user.email, redirect_url: "http://frontend.example.com/password_reset" }, as: :json
+        post "/api/v1/auth/password", params: { email: user.email }, as: :json
       end
 
       it "パスワードリセットメールが送信され、ステータス200が返る" do
@@ -26,7 +26,7 @@ RSpec.describe "Password Reset", type: :request do
   # リダイレクト先（パスワード更新ページ）URLへGET
   describe "GET /api/v1/auth/password/edit" do
     before do
-      post "/api/v1/auth/password", params: { email: user.email, redirect_url: "http://frontend.example.com/password_reset" }, as: :json
+      post "/api/v1/auth/password", params: { email: user.email }, as: :json
       user.reload
     end
 
@@ -34,10 +34,10 @@ RSpec.describe "Password Reset", type: :request do
       it "パスワードリセットメール内のリンク押下で再設定ページへリダイレクト" do
         raw_token = user.send(:set_reset_password_token) # ハッシュ化前のリセットトークンを取得
 
-        get "/api/v1/auth/password/edit", params: { reset_password_token: raw_token, redirect_url: "http://frontend.example.com/password_reset" }
+        get "/api/v1/auth/password/edit", params: { reset_password_token: raw_token }
 
         expect(response).to have_http_status(:found)
-        expect(response.headers["Location"]).to match(%r{\Ahttp://frontend\.example\.com/password_reset\?reset_password_token=#{Regexp.escape(raw_token)}}) # リダイレクト先URLにリセットトークンが含まれているか
+        expect(response.headers["Location"]).to match(%r{\Ahttp://frontend\.example\.com/password-reset\?reset_password_token=#{Regexp.escape(raw_token)}}) # リダイレクト先URLにリセットトークンが含まれているか
         user.reload
         expect(user.allow_password_change).to be true # パスワード変更許可をtrueに
       end
@@ -45,7 +45,7 @@ RSpec.describe "Password Reset", type: :request do
 
     context "リセットトークンが無効な場合" do
       it "再設定ページへのリダイレクトに失敗する" do
-        get "/api/v1/auth/password/edit", params: { reset_password_token: "invalid_token", redirect_url: "http://frontend.example.com/password_reset" }
+        get "/api/v1/auth/password/edit", params: { reset_password_token: "invalid_token" }
 
         expect(response).to have_http_status(:not_found)
         user.reload
@@ -62,7 +62,7 @@ RSpec.describe "Password Reset", type: :request do
       end
 
       it "再設定ページへのリダイレクトに失敗する" do
-        get "/api/v1/auth/password/edit", params: { reset_password_token: raw_token, redirect_url: "http://frontend.example.com/password_reset" }
+        get "/api/v1/auth/password/edit", params: { reset_password_token: raw_token }
 
         expect(response).to have_http_status(:not_found)
         user.reload
@@ -74,7 +74,7 @@ RSpec.describe "Password Reset", type: :request do
   # 新しいパスワードをPUT
   describe "PUT /api/v1/auth/password" do
     let(:raw_token) do
-      post "/api/v1/auth/password", params: { email: user.email, redirect_url: "http://frontend.example.com/password_reset" }, as: :json
+      post "/api/v1/auth/password", params: { email: user.email }, as: :json
       raw_token = user.send(:set_reset_password_token)
     end
 

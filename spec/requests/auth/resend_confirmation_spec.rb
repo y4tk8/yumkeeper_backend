@@ -8,7 +8,7 @@ RSpec.describe "Resend Account Confirmation", type: :request do
 
       it "認証メールが再送され、ステータス200が返る" do
         expect {
-          post "/api/v1/auth/confirmation", params: { email: unconfirmed_user.email, redirect_url: "http://frontend.example.com/confirmation" }, as: :json
+          post "/api/v1/auth/confirmation", params: { email: unconfirmed_user.email }, as: :json
         }.to change { ActionMailer::Base.deliveries.count }.by(1)
 
         expect(response).to have_http_status(:ok)
@@ -21,7 +21,7 @@ RSpec.describe "Resend Account Confirmation", type: :request do
 
       it "認証メールが送信され、ステータス200が返る" do
         expect {
-          post "/api/v1/auth/confirmation", params: { email: user.email, redirect_url: "http://frontend.example.com/confirmation" }, as: :json
+          post "/api/v1/auth/confirmation", params: { email: user.email }, as: :json
         }.to change { ActionMailer::Base.deliveries.count }.by(1)
 
         expect(response).to have_http_status(:ok)
@@ -34,7 +34,7 @@ RSpec.describe "Resend Account Confirmation", type: :request do
 
       it "認証メールが送信され、ステータス200が返る" do
         expect {
-          post "/api/v1/auth/confirmation", params: { email: deleted_user.email, redirect: "http://frontend.example.com/confirmation" }, as: :json
+          post "/api/v1/auth/confirmation", params: { email: deleted_user.email }, as: :json
         }.to change { ActionMailer::Base.deliveries.count }.by(1)
 
         expect(response).to have_http_status(:ok)
@@ -45,7 +45,7 @@ RSpec.describe "Resend Account Confirmation", type: :request do
     context "存在しないメールアドレスを指定した場合" do
       it "認証メールは送信されず、ステータス200が返る" do
         expect {
-          post "/api/v1/auth/confirmation", params: { email: "nonexistent@example.com", redirect: "http://frontend.example.com/confirmation" }, as: :json
+          post "/api/v1/auth/confirmation", params: { email: "nonexistent@example.com" }, as: :json
         }.not_to change { ActionMailer::Base.deliveries.count }
 
         expect(response).to have_http_status(:ok)
