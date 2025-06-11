@@ -12,6 +12,15 @@ module Api
             message: "アカウント認証メールを再送しました。メールをご確認ください。"
           }
         end
+
+        private
+
+        # 外部URLへのリダイレクトを許可する
+        def redirect_options
+          {
+            allow_other_host: true
+          }
+        end
       end
     end
   end
