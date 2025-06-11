@@ -1,1 +1,79 @@
-404 Not Found
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 Not Found</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .content {
+      display: flex;
+      align-items: center;
+    }
+
+    .error-image {
+      max-height: 340px;
+      height: auto;
+      width: auto;
+    }
+
+    .error-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .error-code {
+      font-size: 6rem;
+      font-weight: bold;
+      text-align: center;
+      line-height: 2;
+    }
+
+    .error-message {
+      font-size: 2.5rem;
+      font-weight: normal;
+      text-align: center;
+    }
+
+    .back-link {
+      margin-top: 4rem;
+      font-size: 1.25rem;
+      text-decoration: none;
+      color: #2563eb;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main role="main">
+    <div class="content" aria-labelledby="error-heading">
+      <img src="/images/404.png" alt="ページが見つかりませんでした" class="error-image" />
+      <div class="error-text">
+        <div class="error-code">404</div>
+        <div class="error-message" id="error-heading">Not Found</div>
+      </div>
+    </div>
+    <a href="https://www.yumkeeper.net" class="back-link">トップへ戻る</a>
+  </main>
+</body>
+</html>
