@@ -1,1 +1,31 @@
-500 Internal Server Error
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>500 Internal Server Error</title>
+    <link rel="stylesheet" href="/error.css" />
+    <style>
+      .description {
+        line-height: 1.25;
+        white-space: pre-line;
+      }
+    </style>
+  </head>
+  <body>
+    <main role="main">
+      <div class="content" aria-labelledby="error-heading">
+        <img src="/images/500.png" alt="サーバーエラーが発生しました" class="error-image" />
+        <div class="error-text">
+          <div class="error-code">500</div>
+          <div class="error-message" id="error-heading">Server Error</div>
+        </div>
+      </div>
+      <p class="description">
+        予期せぬエラーが発生しました。<br />
+        ご不便をおかけしますが、しばらくしてからお試しください。
+      </p>
+      <a href="https://www.yumkeeper.net" class="back-link">トップへ戻る</a>
+    </main>
+  </body>
+</html>
