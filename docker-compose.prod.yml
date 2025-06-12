@@ -1,14 +1,9 @@
 name: yumkeeper
 
 services:
-  # Railsコンテナ
+  # Railsコンテナ（環境変数はタスク定義で渡す）
   api:
     build: .
-    volumes:
-      - .:/app
-      - ./log:/app/log
-      - public_data:/app/public
-      - tmp_data:/app/tmp
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/healthcheck"]
       interval: 10s
@@ -20,15 +15,6 @@ services:
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
-    volumes:
-      - ./nginx/log:/var/log/nginx
-      - public_data:/app/public
-      - tmp_data:/app/tmp
     depends_on:
       api:
-        condition: service_healthy # ECSでのデプロイ安定化が目的
-
-volumes:
-  postgres_data:
-  public_data:
-  tmp_data:
+        condition: service_healthy # ECSでのデプロイ安定化のため
