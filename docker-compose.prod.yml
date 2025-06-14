@@ -4,6 +4,8 @@ services:
   # Railsコンテナ（環境変数はタスク定義で渡す）
   api:
     build: .
+    volumes:
+      - tmp_data:/app/tmp
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/healthcheck"]
       interval: 10s
@@ -15,6 +17,11 @@ services:
     build:
       context: .
       dockerfile: ./nginx/Dockerfile
+    volumes:
+      - tmp_data:/app/tmp
     depends_on:
       api:
         condition: service_healthy # ECSでのデプロイ安定化のため
+
+volumes:
+  tmp_data: # Fargateでpumaソケットを共有する
