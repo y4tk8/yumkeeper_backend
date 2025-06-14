@@ -133,7 +133,6 @@ jobs:
           echo "ECR_REPO_RAILS=${{ secrets.ECR_REPO_RAILS }}" >> $GITHUB_ENV
           echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
           echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
-          echo "AWS_IAM_USER_NAME=${{ secrets.AWS_IAM_USER_NAME }}" >> $GITHUB_ENV
 
       - name: Build and push Rails image
         run: |
@@ -149,6 +148,15 @@ jobs:
 
       - name: Generate task definition
         run: |
+          export AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
+          export AWS_REGION=${{ secrets.AWS_REGION }}
+          export ECR_REPO_RAILS=${{ secrets.ECR_REPO_RAILS }}
+          export ECR_REPO_NGINX=${{ secrets.ECR_REPO_NGINX }}
+          export DATABASE_URL=${{ secrets.DATABASE_URL }}
+          export RAILS_MASTER_KEY=${{ secrets.RAILS_MASTER_KEY }}
+          export MAILGUN_SMTP_LOGIN=${{ secrets.MAILGUN_SMTP_LOGIN }}
+          export MAILGUN_SMTP_PASSWORD=${{ secrets.MAILGUN_SMTP_PASSWORD }}
+          export SECRET_KEY_BASE=${{ secrets.SECRET_KEY_BASE }}
           envsubst < ecs/task_definition.json.template > ecs/task_definition.json
 
       - name: Register ECS task definition
