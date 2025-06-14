@@ -1,0 +1,180 @@
+name: CI/CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Choose a branch, tag, or SHA"
+        required: true
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  scan_ruby:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Clear bundler cache (only if failures occurred)
+        if: failure()
+        run: rm -rf ~/.bundle/cache
+
+      - name: Scan for common Rails security vulnerabilities using static analysis
+        run: bin/brakeman --no-pager
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Clear bundler cache (only if failures occurred)
+        if: failure()
+        run: rm -rf ~/.bundle/cache
+
+      - name: Lint code for consistent style
+        run: bin/rubocop -f github
+
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Install packages
+        run: |
+          sudo apt-get update && sudo apt-get install --no-install-recommends -y \
+          curl \
+          libjemalloc2 \
+          libvips \
+          postgresql-client
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Clear bundler cache (only if failures occurred)
+        if: failure()
+        run: rm -rf ~/.bundle/cache
+
+      - name: Run specs
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432
+          POSTGRES_HOST: localhost
+        run: |
+          bin/rails db:prepare
+          bundle exec rspec
+
+      - name: Keep screenshots from failed system specs
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: screenshots
+          path: ${{ github.workspace }}/tmp/screenshots
+          if-no-files-found: ignore
+
+  cd:
+    needs: [scan_ruby, lint, test]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set variables
+        run: |
+          echo "ECR_REPO_NGINX=${{ secrets.ECR_REPO_NGINX }}" >> $GITHUB_ENV
+          echo "ECR_REPO_RAILS=${{ secrets.ECR_REPO_RAILS }}" >> $GITHUB_ENV
+          echo "AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}" >> $GITHUB_ENV
+          echo "AWS_REGION=${{ secrets.AWS_REGION }}" >> $GITHUB_ENV
+          echo "AWS_IAM_USER_NAME=${{ secrets.AWS_IAM_USER_NAME }}" >> $GITHUB_ENV
+
+      - name: Build and push Rails image
+        run: |
+          docker build -t yumkeeper-rails .
+          docker tag yumkeeper-rails:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_RAILS:latest
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_RAILS:latest
+
+      - name: Build and push Nginx image
+        run: |
+          docker build -t yumkeeper-nginx -f nginx/Dockerfile .
+          docker tag yumkeeper-nginx:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NGINX:latest
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NGINX:latest
+
+      - name: Generate task definition
+        run: |
+          envsubst < ecs/task_definition.json.template > ecs/task_definition.json
+
+      - name: Register ECS task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://ecs/task_definition.json > ecs/registered-task.json
+
+      - name: Deploy to ECS
+        run: |
+          TASK_DEF_ARN=$(jq -r ".taskDefinition.taskDefinitionArn" ecs/registered-task.json)
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE }} \
+            --task-definition "$TASK_DEF_ARN"
+
+      - name: Notify failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.mailgun.org
+          server_port: 587
+          username: ${{ secrets.MAILGUN_SMTP_LOGIN }}
+          password: ${{ secrets.MAILGUN_SMTP_PASSWORD }}
+          subject: "[Failed] ECS Deploy Error - Yum Keeper"
+          from: "GitHub Actions <no-reply@mg.yumkeeper.net>"
+          to: ${{ secrets.MY_EMAIL_ADDRESS }}
+          body: |
+            ECSデプロイに失敗しました。ジョブを確認してください。
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
