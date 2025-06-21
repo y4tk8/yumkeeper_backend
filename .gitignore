@@ -36,4 +36,7 @@
 # Task definition created from task_definition.json.template
 ecs/task_definition.json
 
+# Test coverage
+/coverage/
+
 .DS_Store
