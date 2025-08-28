@@ -10,7 +10,7 @@ https://www.yumkeeper.net
 本登録いただく場合は認証メールが迷惑メールフォルダに振り分けられることがあります。  
 メールが届かない際はそちらもご確認ください。
 
-デモ動画は[こちら](https://www.youtube.com/watch?v=qW2vmPz5udQ)から視聴できます
+デモ動画は[こちら](https://www.youtube.com/watch?v=NUO7qT2l7wA)から視聴できます
 
 ### ▼ Qiita記事
 [【微経験】独学で動画特化の料理レシピ保存サービスを開発するまで【Rails / Next.js / AWS / Docker / GitHub Actions】](https://qiita.com/y4tk8/items/e5bef391e38db7f790c5)
