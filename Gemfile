@@ -37,7 +37,7 @@ gem "devise-i18n"
 gem "devise_token_auth"
 
 # Pagination
-gem "pagy", "~> 9.3"
+gem "pagy", "~> 9.4"
 
 # Upload Image for Prod
 gem "aws-sdk-s3", require: false
