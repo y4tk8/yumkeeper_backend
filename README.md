@@ -13,7 +13,7 @@ https://www.yumkeeper.net
 デモ動画は[こちら](https://www.youtube.com/watch?v=NUO7qT2l7wA)から視聴できます
 
 ### ▼ Qiita記事
-[【微経験】独学で動画特化の料理レシピ保存サービスを開発するまで【Rails / Next.js / AWS / Docker / GitHub Actions】](https://qiita.com/y4tk8/items/e5bef391e38db7f790c5)
+[【微経験】独学で動画特化の料理レシピ保存サービスを開発するまで【Rails / TypeScript / Next.js / AWS / Docker / GitHub Actions】](https://qiita.com/y4tk8/items/e5bef391e38db7f790c5)
 
 インプットから開発、リリースまでの経緯や苦労したポイントなどを上記にまとめております
 
@@ -74,15 +74,13 @@ https://www.yumkeeper.net
 ### 使用技術一覧
 - バックエンド
   - 言語: Ruby 3.3.7 / Ruby on Rails 7.2.2.1
-  - テスト: RSpec
-  - 静的解析ツール: Rubocop
+  - テスト・開発支援: RSpec / RuboCop
 - フロントエンド
   - 言語: TypeScript 5.8.2 / React 19.0.0 / Next.js 15.1.6
-  - テスト: Vitest / React Testing Library / MSW / Cypress
+  - テスト・開発支援: Vitest / React Testing Library / MSW / Cypress / ESLint / Prettier
   - デザイン: Tailwind CSS / Shadcn UI
-  - 静的解析・整形ツール: ESLint / Prettier
-- インフラ: AWS(Route53 / ALB / ECS on Fargate / ECR / RDS / ACM etc) / Nginx / Vercel
-- CI / CD: GitHub Actions
+- インフラ: AWS(Route53 / ALB / ECS Fargate / ECR / RDS PostgreSQL / ACM / CloudWatch etc.) / Nginx / Vercel
+- CI/CD: GitHub Actions
 - 環境構築: Docker / Docker Compose / Dev Containers
 - 外部API: YouTube Data API
 
@@ -102,7 +100,7 @@ https://www.yumkeeper.net
 
 ### テスト戦略
 - バックエンド:
-  - 主に <u>ユーザー認証</u> & <u>レシピ機能</u> について正常系・異常系どちらも網羅的にテスト済み
+  - 主に ユーザー認証 & レシピ機能 について正常系・異常系どちらも網羅的にテスト済み
   - FactoryBotでテストデータ生成の上、可読性とDRYのバランスを意識して記述
   - カバレッジは **83.05%**
 - フロントエンド
