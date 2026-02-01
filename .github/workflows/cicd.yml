@@ -174,7 +174,7 @@ jobs:
 
       - name: Notify failure
         if: failure()
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v8
         with:
           server_address: smtp.mailgun.org
           server_port: 587
